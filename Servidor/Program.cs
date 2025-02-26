@@ -6,7 +6,7 @@ namespace Servidor
     {
         static void Main(string[] args)
         {
-
+            Console.WriteLine("Para o commit de teste.");
         }
     }
 }
