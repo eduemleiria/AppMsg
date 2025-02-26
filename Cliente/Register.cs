@@ -53,10 +53,12 @@ namespace Cliente
 
             var serverResponse = JsonSerializer.Deserialize<Dictionary<string, string>>(response);
 
-            if (serverResponse != null && serverResponse.ContainsKey("status") && serverResponse["status"] == "success")
+            if (serverResponse != null && serverResponse.ContainsKey("status") && serverResponse["status"] == "sucesso")
             {
-                MessageBox.Show("Conta criada com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Conta criada com sucesso!", "sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
+                Form1 loginForm = new Form1();
+                loginForm.Show();
             }
             else
             {

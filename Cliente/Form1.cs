@@ -38,15 +38,14 @@ namespace Cliente
                 return;
             }
 
-            var loginRequest = new
+            var loginRequest = new Dictionary<string, string>
             {
-                action = "login",
-                username = username,
-                password = password
+                { "action", "login" },
+                { "username", username },
+                { "password", password }
             };
 
-            string jsonRequest = JsonSerializer.Serialize(loginRequest);
-            string response = EnviarParaServidor(jsonRequest);
+            string response = EnviarParaServidor(JsonSerializer.Serialize(loginRequest));
 
             var serverResponse = JsonSerializer.Deserialize<Dictionary<string, string>>(response);
 
@@ -55,7 +54,7 @@ namespace Cliente
                 if (serverResponse["status"] == "sucesso")
                 {
                     MessageBox.Show("Login realizado com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    
+                    // Aqui fazer o codigo para enviar o user para a janela principal (lista de grupos etc)
                 }
                 else
                 {

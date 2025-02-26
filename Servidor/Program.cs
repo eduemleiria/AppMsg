@@ -1,26 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
+using System.IO;
 
 namespace Servidor
 {
     internal class Program
     {
-        static List<TcpClient> clientes = new List<TcpClient>();
+        static Dictionary<string, TcpClient> usersConectados = new Dictionary<string, TcpClient>();
         static TcpListener listener;
         static string usersFile = "users.json";
         static string salasFile = "salas.json";
-        static Dictionary<string, string> users = new();
 
         static void Main(string[] args)
         {
-            LoadUsers();
-
             IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 3700);
             listener = new TcpListener(endPoint);
             listener.Start();
@@ -30,17 +28,13 @@ namespace Servidor
             while (true)
             {
                 TcpClient client = listener.AcceptTcpClient();
-                clientes.Add(client);
                 Console.WriteLine("Novo cliente conectado.");
-
-                Thread clientThread = new Thread(HandleClient);
-                clientThread.Start(client);
+                Task.Run(() => HandleClient(client));
             }
         }
 
-        static void HandleClient(object obj)
+        private static void HandleClient(TcpClient client)
         {
-            TcpClient client = (TcpClient)obj;
             NetworkStream stream = client.GetStream();
             byte[] buffer = new byte[1024];
 
@@ -53,24 +47,17 @@ namespace Servidor
 
                     string jsonMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                     Console.WriteLine($"Recebido: {jsonMessage}");
-
                     var request = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
 
-                    if (request.ContainsKey("action"))
+                    if (request != null && request.ContainsKey("action"))
                     {
-                        switch (request["action"])
+                        if (request["action"] == "register")
                         {
-                            case "register":
-                                HandleRegister(client, request);
-                                break;
-
-                            case "login":
-                                HandleLogin(client, request);
-                                break;
-
-                            default:
-                                SendResponse(client, new { status = "error", message = "Ação desconhecida!" });
-                                break;
+                            HandleRegister(client, request);
+                        }
+                        else if (request["action"] == "login")
+                        {
+                            HandleLogin(client, request);
                         }
                     }
                 }
@@ -81,60 +68,62 @@ namespace Servidor
             }
             finally
             {
-                Console.WriteLine("Cliente desconectado.");
-                clientes.Remove(client);
+                Console.WriteLine("Utilizador desconectado.");
                 client.Close();
             }
         }
 
-        static void HandleRegister(TcpClient client, Dictionary<string, string> request)
+        private static void HandleRegister(TcpClient client, Dictionary<string, string> request)
         {
             string username = request["username"];
             string password = request["password"];
 
+            var users = LoadUsers();
             if (users.ContainsKey(username))
             {
-                SendResponse(client, new { status = "erro", message = "Nome do utilizador já existe!" });
+                SendResponse(client, new { status = "erro", message = "Utilizador já existe." });
+                return;
             }
             else
             {
                 users[username] = password;
-                SaveUsers();
+                SaveUsers(users);
                 SendResponse(client, new { status = "sucesso", message = "Conta criada com sucesso!" });
             }
         }
 
-        static void HandleLogin(TcpClient client, Dictionary<string, string> request)
+        private static void HandleLogin(TcpClient client, Dictionary<string, string> request)
         {
             string username = request["username"];
             string password = request["password"];
 
+            var users = LoadUsers();
             if (users.ContainsKey(username) && users[username] == password)
             {
+                usersConectados[username] = client;
                 SendResponse(client, new { status = "sucesso", message = "Login realizado com sucesso!" });
+                Console.WriteLine($"O utilizador {username} foi conectado!");
             }
             else
             {
-                SendResponse(client, new { status = "erro", message = "Utilizador ou password incorretos!" });
+                SendResponse(client, new { status = "erro", message = "Credenciais inválidas." });
             }
         }
 
-        static void LoadUsers()
+        private static Dictionary<string, string> LoadUsers()
         {
-            if (File.Exists(usersFile))
-            {
-                string json = File.ReadAllText(usersFile);
-                users = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
-            }
+            if (!File.Exists(usersFile)) return new Dictionary<string, string>();
+            string json = File.ReadAllText(usersFile);
+            return JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
         }
 
-        static void SaveUsers()
+        private static void SaveUsers(Dictionary<string, string> users)
         {
-            string json = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
+            string json = JsonSerializer.Serialize(users);
             File.WriteAllText(usersFile, json);
         }
 
-        static void SendResponse(TcpClient client, object data)
+        private static void SendResponse(TcpClient client, object data)
         {
             string json = JsonSerializer.Serialize(data);
             byte[] buffer = Encoding.UTF8.GetBytes(json);
