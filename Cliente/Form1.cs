@@ -13,6 +13,7 @@ namespace Cliente
     {
         private TcpClient cliente;
         private NetworkStream stream;
+        public static string userLogado = string.Empty;
 
         public Form1()
         {
@@ -53,8 +54,11 @@ namespace Cliente
             {
                 if (serverResponse["status"] == "sucesso")
                 {
+                    userLogado = username;
                     MessageBox.Show("Login realizado com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    // Aqui fazer o codigo para enviar o user para a janela principal (lista de grupos etc)
+                    ListaSalas listaSalas = new ListaSalas();
+                    this.Hide();
+                    listaSalas.Show();
                 }
                 else
                 {
