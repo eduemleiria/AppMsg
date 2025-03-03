@@ -38,15 +38,16 @@ namespace Cliente
             string pass = txtPass.Text;
             string username = Form1.userLogado;
 
-            using (TcpClient client = new TcpClient("127.0.0.1", 3700))
+            try
             {
+                TcpClient client = new TcpClient("127.0.0.1", 3700);
                 NetworkStream stream = client.GetStream();
 
                 var request = JsonSerializer.Serialize(new
                 {
                     action = "criar_chat_privado",
                     port = porta.ToString(),
-                    password = pass,
+                    password = pass.ToString(),
                     user = username
                 });
 
@@ -62,7 +63,7 @@ namespace Cliente
                 {
                     MessageBox.Show("O chat privado foi criado com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                    ConversaDireta cd = new ConversaDireta(username, porta);
+                    ConversaDireta cd = new ConversaDireta(username, porta, pass);
                     this.Hide();
                     cd.Show();
                 }
@@ -70,6 +71,11 @@ namespace Cliente
                 {
                     MessageBox.Show("Erro ao criar o chat privado.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+                client.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erro ao criar o chat privado: {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

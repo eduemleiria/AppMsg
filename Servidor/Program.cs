@@ -11,18 +11,24 @@ namespace Servidor
         static Dictionary<int, List<TcpClient>> chatsPrivados = new Dictionary<int, List<TcpClient>>();
         static Dictionary<int, List<string>> usersNoChatPrivado = new Dictionary<int, List<string>>();
 
+        // tcplistener é o que "ouve" as conexões do TCPClient (os clientes)
         static TcpListener listener;
+
         static string usersFile = "users.json";
         static string salasFile = "salas.json";
 
         static void Main(string[] args)
         {
+            // Define o endpoint para o Tcplistener aceitar conexões de qualquer IP na porta 3700
             IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 3700);
+            //inicializar o listener a ouvir pelos endpoints
             listener = new TcpListener(endPoint);
+            //inicializar o listener (o servidor basicamente)
             listener.Start();
 
-            Console.WriteLine("----> Servidor ligado <----");
+            Console.WriteLine("----> Servidor ligado <----");            
 
+            // Enquanto o servidor estiver ligado, aceitar qualquer ip a tentar aceder ao servidor, anunciar essa conexão e começar o HandleClient
             while (true)
             {
                 TcpClient client = listener.AcceptTcpClient();
@@ -33,15 +39,20 @@ namespace Servidor
 
         private static void HandleClient(TcpClient cliente)
         {
+            // Inicializar o NetworkStream que recebe os dados do cliente conectado
             NetworkStream stream = cliente.GetStream();
+            // Serve de armazenamento temporário para ler ou escrever dados
             byte[] buffer = new byte[1024];
 
             try
             {
+                // Lê os dados recebidos da stream
                 int bytesRead = stream.Read(buffer, 0, buffer.Length);
                 if (bytesRead == 0) return;
 
+                // Traduzir os bytes em uma string
                 string jsonMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                // Deserialização da mensagem traduzida para o request
                 var request = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
                 Console.WriteLine($"Request received: {jsonMessage}");
 
@@ -61,8 +72,9 @@ namespace Servidor
                     {
                         int porta = int.Parse(request["port"]);
                         string password = request["password"];
+                        string username = request["user"];
                         Console.WriteLine($"Criar chat privado na porta: {porta} com a password: {password}");
-                        Task.Run(() => StartPrivateChat(cliente, porta, password));
+                        Task.Run(() => StartPrivateChat(cliente, porta, password, username));
                     }else if (request["action"] == "entrar_chat_privado")
                     {
                         int porta = int.Parse(request["port"]);
@@ -76,6 +88,7 @@ namespace Servidor
                         else
                         {
                             SendResponse(cliente, new { status = "erro", message = "Chat privado não encontrado." });
+                            Console.WriteLine("cliente.close() no handleclient");
                             cliente.Close();
                         }
                     }
@@ -87,11 +100,15 @@ namespace Servidor
             }
             finally
             {
-                cliente.Close();
+                if (!chatsPrivados.Values.Any(chatList => chatList.Contains(cliente)))
+                {
+                    //Console.WriteLine("cliente.close() no handleclient mas no finally");
+                    //cliente.Close();
+                }
             }
         }
 
-        static void StartPrivateChat(TcpClient cliente, int porta, string chatPassword)
+        static void StartPrivateChat(TcpClient cliente, int porta, string chatPassword, string username)
         {
             if (chatsPrivados.ContainsKey(porta))
             {
@@ -99,9 +116,11 @@ namespace Servidor
                 return;
             }
 
+            TcpListener privateChatServer = null;
+
             try
             {
-                TcpListener privateChatServer = new TcpListener(IPAddress.Any, porta);
+                privateChatServer = new TcpListener(IPAddress.Any, porta);
                 privateChatServer.Start();
                 Console.WriteLine($"Chat privado iniciado na porta {porta}.");
 
@@ -113,26 +132,27 @@ namespace Servidor
                 while (true)
                 {
                     TcpClient client = privateChatServer.AcceptTcpClient();
-                    if (client.Connected)
+                    if (client != null && client.Connected)
                     {
                         Console.WriteLine("Novo utilizador conectado ao chat privado.");
-                        Task.Run(() => HandlePrivateChatClient(client, chatPassword, porta, ""));
-                    }
-                    else
-                    {
-                        Console.WriteLine("Erro: Cliente não conectado corretamente.");
-                        client.Close();
+                        Task.Run(() => HandlePrivateChatClient(client, chatPassword, porta, username));
                     }
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro ao iniciar o chat privado: {ex.Message}");
+                if (privateChatServer != null)
+                {
+                    Console.WriteLine("privateChatServer.stop() do startprivatechat");
+                    privateChatServer.Stop();
+                }
             }
         }
 
         private static void HandlePrivateChatClient(TcpClient client, string chatPassword, int porta, string username)
         {
+
             if (client == null || !client.Connected)
             {
                 Console.WriteLine("Erro: Cliente não conectado.");
@@ -152,7 +172,11 @@ namespace Servidor
             try
             {
                 int bytesRead = stream.Read(buffer, 0, buffer.Length);
-                if (bytesRead == 0) return;
+                if (bytesRead == 0)
+                {
+                    Console.WriteLine($"Cliente {username} desconectou-se inesperadamente.");
+                    return;
+                }
 
                 string jsonMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                 var request = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
@@ -162,6 +186,7 @@ namespace Servidor
                 {
                     var response = JsonSerializer.Serialize(new { status = "erro", message = "Password errada!" });
                     stream.Write(Encoding.UTF8.GetBytes(response));
+                    Console.WriteLine("cliente.close() no handleprivatechatclient dentro do if da validacao de pass");
                     client.Close();
                     return;
                 }
@@ -176,7 +201,7 @@ namespace Servidor
                 usersNoChatPrivado[porta].Add(username);
 
                 Console.WriteLine($"O user {username} juntou-se ao chat privado na porta {porta}.");
-                BroadcastMessage($"{username} juntou-se ao chat!", chatsPrivados[porta]);
+                BroadcastMessage($"O {username} juntou-se ao chat!", chatsPrivados[porta]);
 
                 while (true)
                 {
@@ -202,16 +227,17 @@ namespace Servidor
                 chatsPrivados[porta].Remove(client);
                 Console.WriteLine($"O utilizador {username} saiu do chat privado.");
                 usersNoChatPrivado[porta].Remove(username);
+                Console.WriteLine("cliente.close() na linha 213");
                 client.Close();
             }
         }
 
 
-        private static void BroadcastMessage(string message, List<TcpClient> clients)
+        private static void BroadcastMessage(string message, List<TcpClient> clientes)
         {
             byte[] data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { mensagem = message }));
 
-            foreach (var client in clients)
+            foreach (var client in clientes)
             {
                 try
                 {

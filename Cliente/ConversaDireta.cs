@@ -19,15 +19,17 @@ namespace Cliente
     public partial class ConversaDireta : Form
     {
         private string userLogado;
+        private string passwordCriada;
         private int porta;
         private TcpClient client;
         private NetworkStream stream;
         private byte[] buffer;
 
-        public ConversaDireta(string username, int porta)
+        public ConversaDireta(string username, int porta, string password)
         {
             InitializeComponent();
             this.userLogado = username;
+            this.passwordCriada = password;
             this.porta = porta;
             this.buffer = new byte[1024];
             InitializeChat();
@@ -43,6 +45,7 @@ namespace Cliente
                 var request = JsonSerializer.Serialize(new
                 {
                     action = "entrar_chat_privado",
+                    password = passwordCriada,
                     user = userLogado
                 });
 
@@ -53,6 +56,7 @@ namespace Cliente
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Erro ao conectar ao chat: {ex.Message}");
                 MessageBox.Show($"Erro ao conectar ao chat: {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -66,17 +70,22 @@ namespace Cliente
                     int bytesRead = stream.Read(buffer, 0, buffer.Length);
                     if (bytesRead == 0) break;
 
-                    string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    if (this.InvokeRequired)
+                    string jsonMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                    Console.WriteLine($"Mensagem do listenformessages: {jsonMessage}");
+                    var receivedData = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
+
+                    if (receivedData != null && receivedData.ContainsKey("mensagem"))
                     {
-                        Invoke(new Action(() =>
+                        string formattedMessage = receivedData["mensagem"];
+
+                        if (this.InvokeRequired)
                         {
-                            lbMsgsD.Items.Add(message + Environment.NewLine);
-                        }));
-                    }
-                    else
-                    {
-                        lbMsgsD.Items.Add(message + Environment.NewLine);
+                            Invoke(new Action(() => lbMsgsD.Items.Add(formattedMessage + Environment.NewLine)));
+                        }
+                        else
+                        {
+                            lbMsgsD.Items.Add(formattedMessage + Environment.NewLine);
+                        }
                     }
                 }
                 catch (Exception ex)

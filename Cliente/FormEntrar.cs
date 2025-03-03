@@ -64,7 +64,7 @@ namespace Cliente
                     {
                         MessageBox.Show($"Você entrou no chat privado da porta {porta}", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                        ConversaDireta cd = new ConversaDireta(username, porta);
+                        ConversaDireta cd = new ConversaDireta(username, porta, pass);
                         this.Hide();
                         cd.Show();
                     }
