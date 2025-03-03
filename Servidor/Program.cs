@@ -67,6 +67,11 @@ namespace Servidor
                         string username = request["username"];
                         usersConectados[username] = cliente;
                         Console.WriteLine($"O utilizador {username} conectou-se.");
+                        Console.WriteLine("Usuários conectados atualmente:");
+                        foreach (var nome in usersConectados.Keys)
+                        {
+                            Console.WriteLine($"- {nome}");
+                        }
                         HandleLogin(cliente, request);
                     }else if (request["action"] == "criar_chat_privado")
                     {
@@ -80,7 +85,7 @@ namespace Servidor
                         int porta = int.Parse(request["port"]);
                         string password = request["password"];
                         string username = request["user"];
-
+                        Console.WriteLine($"A tentar entrar no chat privado: \n - Com a porta: {porta} \n - Com a pass: {password} \n - Com o username: {username}");
                         if (chatsPrivados.ContainsKey(porta))
                         {
                             Task.Run(() => HandlePrivateChatClient(cliente, password, porta, username));
@@ -150,9 +155,9 @@ namespace Servidor
             }
         }
 
+
         private static void HandlePrivateChatClient(TcpClient client, string chatPassword, int porta, string username)
         {
-
             if (client == null || !client.Connected)
             {
                 Console.WriteLine("Erro: Cliente não conectado.");
@@ -164,6 +169,7 @@ namespace Servidor
             if (stream == null)
             {
                 Console.WriteLine("Erro: Não foi possível obter o NetworkStream.");
+                stream.Close();
                 client.Close();
                 return;
             }
@@ -172,6 +178,8 @@ namespace Servidor
             try
             {
                 int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                Console.WriteLine("Bytes lidos: " + bytesRead);
+
                 if (bytesRead == 0)
                 {
                     Console.WriteLine($"Cliente {username} desconectou-se inesperadamente.");
@@ -180,6 +188,8 @@ namespace Servidor
 
                 string jsonMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                 var request = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
+                username = request.ContainsKey("user") ? request["user"] : "Desconhecido";
+
                 Console.WriteLine($"Request recebida: {jsonMessage}");
 
                 if (request == null || !request.ContainsKey("password") || request["password"] != chatPassword)

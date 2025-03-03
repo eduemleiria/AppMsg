@@ -121,6 +121,12 @@
     <Compile Include="Register.Designer.cs">
       <DependentUpon>Register.cs</DependentUpon>
     </Compile>
+    <Compile Include="welcome.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="welcome.Designer.cs">
+      <DependentUpon>welcome.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="ConversaDireta.resx">
       <DependentUpon>ConversaDireta.cs</DependentUpon>
     </EmbeddedResource>
@@ -150,6 +156,9 @@
     </Compile>
     <EmbeddedResource Include="Register.resx">
       <DependentUpon>Register.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="welcome.resx">
+      <DependentUpon>welcome.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">

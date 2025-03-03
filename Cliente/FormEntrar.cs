@@ -35,44 +35,41 @@ namespace Cliente
             int porta = Convert.ToInt32(txtPorta.Value);
             string pass = txtPassword.Text;
             string username = Form1.userLogado;
-
             try
             {
-                using (TcpClient client = new TcpClient("127.0.0.1", 3700))
+                TcpClient client = new TcpClient("127.0.0.1", porta);
+                NetworkStream stream = client.GetStream();
+
+                var request = JsonSerializer.Serialize(new
                 {
-                    NetworkStream stream = client.GetStream();
+                    action = "entrar_chat_privado",
+                    port = porta.ToString(),
+                    password = pass,
+                    user = username
+                });
 
-                    var request = JsonSerializer.Serialize(new
-                    {
-                        action = "entrar_chat_privado",
-                        port = porta.ToString(),
-                        password = pass,
-                        user = username
-                    });
+                Console.WriteLine("Request de entrada: " + request);
+                byte[] data = Encoding.UTF8.GetBytes(request);
+                stream.Write(data, 0, data.Length);
+                stream.Flush();
+                byte[] buffer = new byte[1024];
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
 
-                    Console.WriteLine("Request de entrada: " + request);
-                    byte[] data = Encoding.UTF8.GetBytes(request);
-                    stream.Write(data, 0, data.Length);
-
-                    byte[] responseBuffer = new byte[1024];
-                    int bytesRead = stream.Read(responseBuffer, 0, responseBuffer.Length);
-                    string response = Encoding.UTF8.GetString(responseBuffer, 0, bytesRead);
-                    
-                    var responseData = JsonSerializer.Deserialize<Dictionary<string, string>>(response);
-                    Console.WriteLine("Response do server: " + responseData);
-                    if (responseData != null && responseData.ContainsKey("status") && responseData["status"] == "sucesso")
-                    {
-                        MessageBox.Show($"Você entrou no chat privado da porta {porta}", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                        ConversaDireta cd = new ConversaDireta(username, porta, pass);
-                        this.Hide();
-                        cd.Show();
-                    }
-                    else
-                    {
-                        MessageBox.Show(responseData?["message"] ?? "Erro desconhecido", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                if (bytesRead > 0)
+                {
+                    string jsonResponse = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                    Console.WriteLine("Resposta do servidor: " + jsonResponse);
+                    ConversaDireta cd = new ConversaDireta(username, porta, pass);
+                    this.Hide();
+                    cd.Show();
                 }
+                else
+                {
+                    Console.WriteLine("Nenhuma resposta do servidor.");
+                }
+
+                stream.Close();
+                client.Close();
             }
             catch (Exception ex)
             {

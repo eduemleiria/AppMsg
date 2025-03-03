@@ -51,6 +51,7 @@ namespace Cliente
                     user = username
                 });
 
+                Console.WriteLine("Request de criação: " + request);
                 byte[] data = Encoding.UTF8.GetBytes(request);
                 stream.Write(data, 0, data.Length);
 
