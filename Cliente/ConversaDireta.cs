@@ -51,7 +51,13 @@ namespace Cliente
 
                 byte[] data = Encoding.UTF8.GetBytes(request);
                 stream.Write(data, 0, data.Length);
+                stream.Flush();
 
+                byte[] buffer = new byte[1024];
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+                Console.WriteLine($"Resposta do servidor: {response}");
                 Task.Run(() => ListenForMessages());
             }
             catch (Exception ex)
@@ -71,20 +77,20 @@ namespace Cliente
                     if (bytesRead == 0) break;
 
                     string jsonMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    Console.WriteLine($"Mensagem do listenformessages: {jsonMessage}");
+                    Console.WriteLine($"Mensagem recebida: {jsonMessage}");
                     var receivedData = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
 
-                    if (receivedData != null && receivedData.ContainsKey("mensagem"))
+                    if (receivedData != null)
                     {
-                        string formattedMessage = receivedData["mensagem"];
-
-                        if (this.InvokeRequired)
+                        if (receivedData.ContainsKey("mensagem"))
                         {
+                            string formattedMessage = receivedData["mensagem"];
                             Invoke(new Action(() => lbMsgsD.Items.Add(formattedMessage + Environment.NewLine)));
                         }
-                        else
+                        else if (receivedData.ContainsKey("notificacao"))
                         {
-                            lbMsgsD.Items.Add(formattedMessage + Environment.NewLine);
+                            string notificationText = receivedData["notificacao"];
+                            Invoke(new Action(() => lblAfalarCom.Text = notificationText));
                         }
                     }
                 }

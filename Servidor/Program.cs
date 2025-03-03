@@ -213,6 +213,30 @@ namespace Servidor
                 Console.WriteLine($"O user {username} juntou-se ao chat privado na porta {porta}.");
                 BroadcastMessage($"O {username} juntou-se ao chat!", chatsPrivados[porta]);
 
+                var confirmacao = JsonSerializer.Serialize(new { status = "ok", message = "Bem-vindo ao chat!" });
+                stream.Write(Encoding.UTF8.GetBytes(confirmacao));
+                stream.Flush();
+
+                if (usersNoChatPrivado[porta].Count == 2)
+                {
+                    string user1 = usersNoChatPrivado[porta][0];
+                    string user2 = usersNoChatPrivado[porta][1];
+
+                    var notificarUser1 = JsonSerializer.Serialize(new { notificacao = $"Estás a falar com {user2}" });
+                    var notificarUser2 = JsonSerializer.Serialize(new { notificacao = $"Estás a falar com {user1}" });
+
+                    byte[] dataForFirstUser = Encoding.UTF8.GetBytes(notificarUser1);
+                    byte[] dataForSecondUser = Encoding.UTF8.GetBytes(notificarUser2);
+
+                    TcpClient firstClient = chatsPrivados[porta][0];
+                    firstClient.GetStream().Write(dataForFirstUser, 0, dataForFirstUser.Length);
+                    firstClient.GetStream().Flush();
+
+                    TcpClient secondClient = chatsPrivados[porta][1];
+                    secondClient.GetStream().Write(dataForSecondUser, 0, dataForSecondUser.Length);
+                    secondClient.GetStream().Flush();
+                }
+
                 while (true)
                 {
                     bytesRead = stream.Read(buffer, 0, buffer.Length);
