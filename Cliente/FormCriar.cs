@@ -58,8 +58,8 @@ namespace Cliente
                 byte[] buffer = new byte[1024];
                 int bytesRead = stream.Read(buffer, 0, buffer.Length);
                 string jsonResponse = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-
                 Console.WriteLine($"Resposta do server: {jsonResponse}");
+
                 if (jsonResponse.Contains("Chat privado criado com sucesso"))
                 {
                     MessageBox.Show("O chat privado foi criado com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);

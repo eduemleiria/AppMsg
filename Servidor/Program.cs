@@ -49,12 +49,12 @@ namespace Servidor
                 // Lê os dados recebidos da stream
                 int bytesRead = stream.Read(buffer, 0, buffer.Length);
                 if (bytesRead == 0) return;
-
                 // Traduzir os bytes em uma string
                 string jsonMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                 // Deserialização da mensagem traduzida para o request
                 var request = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
-                Console.WriteLine($"Request received: {jsonMessage}");
+
+                Console.WriteLine($"Request recebida: {jsonMessage}");
 
                 if (request != null && request.ContainsKey("action"))
                 {
@@ -213,10 +213,6 @@ namespace Servidor
                 Console.WriteLine($"O user {username} juntou-se ao chat privado na porta {porta}.");
                 BroadcastMessage($"O {username} juntou-se ao chat!", chatsPrivados[porta]);
 
-                var confirmacao = JsonSerializer.Serialize(new { status = "ok", message = "Bem-vindo ao chat!" });
-                stream.Write(Encoding.UTF8.GetBytes(confirmacao));
-                stream.Flush();
-
                 if (usersNoChatPrivado[porta].Count == 2)
                 {
                     string user1 = usersNoChatPrivado[porta][0];
@@ -241,15 +237,16 @@ namespace Servidor
                 {
                     bytesRead = stream.Read(buffer, 0, buffer.Length);
                     if (bytesRead == 0) break;
+                    Console.WriteLine($"Bytes lidos no server depois de enviar msg: {bytesRead}");
 
-                    string receivedMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    var messageData = JsonSerializer.Deserialize<Dictionary<string, string>>(receivedMessage);
+                    string jsonMensagem = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                    var pedido = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMensagem);
 
-                    if (messageData.ContainsKey("mensagem"))
-                    {
-                        Console.WriteLine($"{messageData["enviado_por"]}: {messageData["mensagem"]}");
-                        BroadcastMessage($"{messageData["enviado_por"]}: {messageData["mensagem"]}", chatsPrivados[porta]);
-                    }
+                    Console.WriteLine($"Pedido recebido: {jsonMensagem}");
+
+                    string mensagem = pedido.ContainsKey("mensagem_enviada") ? pedido["mensagem_enviada"] : "Erro";
+                    Console.WriteLine($"O utilizador {username} disse: {mensagem}");
+                    BroadcastMessage($"{username}: {mensagem}", chatsPrivados[porta]);
                 }
             }
             catch (Exception ex)

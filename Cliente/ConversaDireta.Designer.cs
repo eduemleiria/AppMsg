@@ -62,27 +62,30 @@
             // 
             // btnEnviarMsgD
             // 
-            this.btnEnviarMsgD.Location = new System.Drawing.Point(556, 438);
+            this.btnEnviarMsgD.Location = new System.Drawing.Point(556, 425);
             this.btnEnviarMsgD.Name = "btnEnviarMsgD";
-            this.btnEnviarMsgD.Size = new System.Drawing.Size(75, 23);
+            this.btnEnviarMsgD.Size = new System.Drawing.Size(75, 24);
             this.btnEnviarMsgD.TabIndex = 8;
             this.btnEnviarMsgD.Text = "Enviar";
             this.btnEnviarMsgD.UseVisualStyleBackColor = true;
+            this.btnEnviarMsgD.Click += new System.EventHandler(this.btnEnviarMsgD_Click);
             // 
             // txtMsgD
             // 
-            this.txtMsgD.Location = new System.Drawing.Point(12, 438);
+            this.txtMsgD.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtMsgD.Location = new System.Drawing.Point(12, 425);
             this.txtMsgD.Name = "txtMsgD";
-            this.txtMsgD.Size = new System.Drawing.Size(546, 22);
+            this.txtMsgD.Size = new System.Drawing.Size(546, 24);
             this.txtMsgD.TabIndex = 7;
             // 
             // lbMsgsD
             // 
+            this.lbMsgsD.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lbMsgsD.FormattingEnabled = true;
-            this.lbMsgsD.ItemHeight = 16;
+            this.lbMsgsD.ItemHeight = 18;
             this.lbMsgsD.Location = new System.Drawing.Point(12, 61);
             this.lbMsgsD.Name = "lbMsgsD";
-            this.lbMsgsD.Size = new System.Drawing.Size(619, 372);
+            this.lbMsgsD.Size = new System.Drawing.Size(619, 364);
             this.lbMsgsD.TabIndex = 6;
             // 
             // lblAfalarCom
@@ -99,7 +102,7 @@
             // 
             this.btnDesconectar.Location = new System.Drawing.Point(12, 34);
             this.btnDesconectar.Name = "btnDesconectar";
-            this.btnDesconectar.Size = new System.Drawing.Size(99, 23);
+            this.btnDesconectar.Size = new System.Drawing.Size(108, 23);
             this.btnDesconectar.TabIndex = 11;
             this.btnDesconectar.Text = "Desconectar";
             this.btnDesconectar.UseVisualStyleBackColor = true;
@@ -109,7 +112,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(643, 470);
+            this.ClientSize = new System.Drawing.Size(643, 455);
             this.Controls.Add(this.btnDesconectar);
             this.Controls.Add(this.lblAfalarCom);
             this.Controls.Add(this.btnEnviarMsgD);

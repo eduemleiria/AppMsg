@@ -58,6 +58,7 @@ namespace Cliente
                 string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
 
                 Console.WriteLine($"Resposta do servidor: {response}");
+                lbMsgsD.Items.Add("Bem-vindo ao chat!");
                 Task.Run(() => ListenForMessages());
             }
             catch (Exception ex)
@@ -80,18 +81,15 @@ namespace Cliente
                     Console.WriteLine($"Mensagem recebida: {jsonMessage}");
                     var receivedData = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
 
-                    if (receivedData != null)
+                    if (receivedData.ContainsKey("mensagem") && InvokeRequired == true)
                     {
-                        if (receivedData.ContainsKey("mensagem"))
-                        {
-                            string formattedMessage = receivedData["mensagem"];
-                            Invoke(new Action(() => lbMsgsD.Items.Add(formattedMessage + Environment.NewLine)));
-                        }
-                        else if (receivedData.ContainsKey("notificacao"))
-                        {
-                            string notificationText = receivedData["notificacao"];
-                            Invoke(new Action(() => lblAfalarCom.Text = notificationText));
-                        }
+                        string formattedMessage2 = receivedData["mensagem"];
+                        Console.WriteLine("Mensagem formatada: " + formattedMessage2);
+                        BeginInvoke(new Action(() => lbMsgsD.Items.Add(formattedMessage2 + Environment.NewLine)));
+                    }else if (receivedData.ContainsKey("notificacao") && InvokeRequired == true)
+                    {
+                        string notificationText = receivedData["notificacao"];
+                        BeginInvoke(new Action(() => lblAfalarCom.Text = notificationText));
                     }
                 }
                 catch (Exception ex)
@@ -104,30 +102,30 @@ namespace Cliente
 
         private void btnEnviarMsgD_Click(object sender, EventArgs e)
         {
+            string msg = txtMsgD.Text;
             try
             {
-                string message = txtMsgD.Text;
-                if (!string.IsNullOrWhiteSpace(message))
+                var request = JsonSerializer.Serialize(new
                 {
-                    var messageData = JsonSerializer.Serialize(new
-                    {
-                        enviado_por = userLogado,
-                        mensagem = message
-                    });
+                    action = "msg",
+                    port = porta.ToString(),
+                    user = userLogado,
+                    mensagem_enviada = msg
+                });
 
-                    byte[] data = Encoding.UTF8.GetBytes(messageData);
-                    stream.Write(data, 0, data.Length);
+                Console.WriteLine($"O request enviado do lado do cliente: {request}");
 
-                    txtMsgD.Clear();
-                }
+                byte[] data = Encoding.UTF8.GetBytes(request);
+                stream.Write(data, 0, data.Length);
+                stream.Flush();
+
+                txtMsgD.Clear();
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 MessageBox.Show($"Erro ao enviar mensagem: {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-
 
         private void logoutToolStripMenuItem_Click(object sender, EventArgs e)
         {
