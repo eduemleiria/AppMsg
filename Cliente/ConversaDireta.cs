@@ -136,7 +136,19 @@ namespace Cliente
 
         private void btnDesconectar_Click(object sender, EventArgs e)
         {
-            Console.WriteLine($"O user {userLogado} saiu da conversa!");
+            var request = JsonSerializer.Serialize(new
+            {
+                action = "sair_chat_privado",
+                port = porta.ToString(),
+                user = userLogado
+            });
+
+            Console.WriteLine($"Request de saida no lado do cliente: {request}");
+
+            byte[] data = Encoding.UTF8.GetBytes(request);
+            stream.Write(data, 0, data.Length);
+            stream.Flush();
+
             ListaSalas listaSalas = new ListaSalas();
             this.Hide();
             listaSalas.Show();

@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Text.Json;
 
@@ -213,28 +214,31 @@ namespace Servidor
                 Console.WriteLine($"O user {username} juntou-se ao chat privado na porta {porta}.");
                 BroadcastMessage($"O {username} juntou-se ao chat!", chatsPrivados[porta]);
 
-                if (usersNoChatPrivado[porta].Count == 2)
-                {
-                    string user1 = usersNoChatPrivado[porta][0];
-                    string user2 = usersNoChatPrivado[porta][1];
-
-                    var notificarUser1 = JsonSerializer.Serialize(new { notificacao = $"Estás a falar com {user2}" });
-                    var notificarUser2 = JsonSerializer.Serialize(new { notificacao = $"Estás a falar com {user1}" });
-
-                    byte[] dataForFirstUser = Encoding.UTF8.GetBytes(notificarUser1);
-                    byte[] dataForSecondUser = Encoding.UTF8.GetBytes(notificarUser2);
-
-                    TcpClient firstClient = chatsPrivados[porta][0];
-                    firstClient.GetStream().Write(dataForFirstUser, 0, dataForFirstUser.Length);
-                    firstClient.GetStream().Flush();
-
-                    TcpClient secondClient = chatsPrivados[porta][1];
-                    secondClient.GetStream().Write(dataForSecondUser, 0, dataForSecondUser.Length);
-                    secondClient.GetStream().Flush();
-                }
+                
 
                 while (true)
                 {
+                    if (usersNoChatPrivado[porta].Count == 2)
+                    {
+                        Console.WriteLine("num de users: " + usersNoChatPrivado[porta].Count);
+                        string user1 = usersNoChatPrivado[porta][0];
+                        string user2 = usersNoChatPrivado[porta][1];
+
+                        var notificarUser1 = JsonSerializer.Serialize(new { notificacao = $"Estás a falar com {user2}" });
+                        var notificarUser2 = JsonSerializer.Serialize(new { notificacao = $"Estás a falar com {user1}" });
+
+                        byte[] dataForFirstUser = Encoding.UTF8.GetBytes(notificarUser1);
+                        byte[] dataForSecondUser = Encoding.UTF8.GetBytes(notificarUser2);
+
+                        TcpClient firstClient = chatsPrivados[porta][0];
+                        firstClient.GetStream().Write(dataForFirstUser, 0, dataForFirstUser.Length);
+                        firstClient.GetStream().Flush();
+
+                        TcpClient secondClient = chatsPrivados[porta][1];
+                        secondClient.GetStream().Write(dataForSecondUser, 0, dataForSecondUser.Length);
+                        secondClient.GetStream().Flush();
+                    }
+
                     bytesRead = stream.Read(buffer, 0, buffer.Length);
                     if (bytesRead == 0) break;
                     Console.WriteLine($"Bytes lidos no server depois de enviar msg: {bytesRead}");
@@ -244,22 +248,37 @@ namespace Servidor
 
                     Console.WriteLine($"Pedido recebido: {jsonMensagem}");
 
-                    string mensagem = pedido.ContainsKey("mensagem_enviada") ? pedido["mensagem_enviada"] : "Erro";
-                    Console.WriteLine($"O utilizador {username} disse: {mensagem}");
-                    BroadcastMessage($"{username}: {mensagem}", chatsPrivados[porta]);
+                    if (jsonMensagem.Contains("sair_chat_privado"))
+                    {
+                        BroadcastMessage($"O utilizador {username} saiu do chat!", chatsPrivados[porta]);
+                        chatsPrivados[porta].Remove(client);
+                        Console.WriteLine($"O utilizador {username} saiu do chat privado.");
+                        usersNoChatPrivado[porta].Remove(username);
+
+                        if (usersNoChatPrivado[porta].Count == 1)
+                        {
+                            var notificarUser = JsonSerializer.Serialize(new { notificacao = "Chat vazio..." });
+
+                            byte[] data = Encoding.UTF8.GetBytes(notificarUser);
+
+                            TcpClient firstClient = chatsPrivados[porta][0];
+                            firstClient.GetStream().Write(data, 0, data.Length);
+                            firstClient.GetStream().Flush();
+                        }
+                    }
+                    else if (jsonMensagem.Contains("msg"))
+                    {
+                        string mensagem = pedido.ContainsKey("mensagem_enviada") ? pedido["mensagem_enviada"] : "Erro";
+                        Console.WriteLine($"O utilizador {username} disse: {mensagem}");
+                        BroadcastMessage($"{username}: {mensagem}", chatsPrivados[porta]);
+                    }
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro: {ex.Message}");
-            }
-            finally
-            {
-                chatsPrivados[porta].Remove(client);
-                Console.WriteLine($"O utilizador {username} saiu do chat privado.");
-                usersNoChatPrivado[porta].Remove(username);
-                Console.WriteLine("cliente.close() na linha 213");
                 client.Close();
+                Console.WriteLine("client.close no catch");
             }
         }
 
