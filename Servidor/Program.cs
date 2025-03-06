@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
@@ -8,8 +9,13 @@ namespace Servidor
 {
     internal class Program
     {
+        // Dicionario dos users conectados na app
         static Dictionary<string, TcpClient> usersConectados = new Dictionary<string, TcpClient>();
+        // Dicionario os users conectados a chats privados
         static Dictionary<int, List<TcpClient>> chatsPrivados = new Dictionary<int, List<TcpClient>>();
+        // Dicionario dos chats privados
+        static Dictionary<int, TcpListener> ListenersDeChatsPrivados = new Dictionary<int, TcpListener>();
+        // Dicionario dos usernames users conectados a chats privados
         static Dictionary<int, List<string>> usersNoChatPrivado = new Dictionary<int, List<string>>();
 
         // tcplistener é o que "ouve" as conexões do TCPClient (os clientes)
@@ -116,32 +122,37 @@ namespace Servidor
 
         static void StartPrivateChat(TcpClient cliente, int porta, string chatPassword, string username)
         {
-            if (chatsPrivados.ContainsKey(porta))
-            {
-                Console.WriteLine($"Chat privado na porta {porta} já existe.");
-                return;
-            }
-
             TcpListener privateChatServer = null;
 
             try
             {
-                privateChatServer = new TcpListener(IPAddress.Any, porta);
-                privateChatServer.Start();
-                Console.WriteLine($"Chat privado iniciado na porta {porta}.");
-
-                chatsPrivados[porta] = new List<TcpClient>();
-                usersNoChatPrivado[porta] = new List<string>();
-
-                SendResponse(cliente, new { status = "sucesso", message = "Chat privado criado com sucesso!" });
-
-                while (true)
+                if (ListenersDeChatsPrivados.ContainsKey(porta))
                 {
-                    TcpClient client = privateChatServer.AcceptTcpClient();
-                    if (client != null && client.Connected)
+                    Console.WriteLine("Já está a ser usada...");
+                    SendResponse(cliente, new { status = "erro", message = "Essa porta já está a ser usada!" });
+                }
+                else
+                {
+                    Console.WriteLine("Porta não está a ser usada...");
+
+                    privateChatServer = new TcpListener(IPAddress.Any, porta);
+                    ListenersDeChatsPrivados[porta] = privateChatServer;
+                    privateChatServer.Start();
+                    Console.WriteLine($"Chat privado iniciado na porta {porta}.");
+
+                    chatsPrivados[porta] = new List<TcpClient>();
+                    usersNoChatPrivado[porta] = new List<string>();
+
+                    SendResponse(cliente, new { status = "sucesso", message = "Chat privado criado com sucesso!" });
+
+                    while (true)
                     {
-                        Console.WriteLine("Novo utilizador conectado ao chat privado.");
-                        Task.Run(() => HandlePrivateChatClient(client, chatPassword, porta, username));
+                        TcpClient client = privateChatServer.AcceptTcpClient();
+                        if (client != null && client.Connected)
+                        {
+                            Console.WriteLine("Novo utilizador conectado ao chat privado.");
+                            Task.Run(() => HandlePrivateChatClient(client, chatPassword, porta, username));
+                        }
                     }
                 }
             }
@@ -173,6 +184,12 @@ namespace Servidor
                 stream.Close();
                 client.Close();
                 return;
+            }
+
+            Console.WriteLine("Chats privados existentes: ");
+            foreach (var chats in chatsPrivados.Keys)
+            {
+                Console.WriteLine($"- {chats}");
             }
 
             byte[] buffer = new byte[1024];
@@ -264,6 +281,35 @@ namespace Servidor
                             TcpClient firstClient = chatsPrivados[porta][0];
                             firstClient.GetStream().Write(data, 0, data.Length);
                             firstClient.GetStream().Flush();
+                        }
+
+
+                        if (usersNoChatPrivado[porta].Count == 0)
+                        {
+                            Console.WriteLine("Está vazio: " + usersNoChatPrivado[porta].Count());
+                            chatsPrivados.Remove(porta);
+
+                            if (ListenersDeChatsPrivados.ContainsKey(porta))
+                            {
+                                ListenersDeChatsPrivados[porta].Stop();
+                                ListenersDeChatsPrivados.Remove(porta);
+                                Console.WriteLine($"Servidor privado na porta {porta} foi fechado.");
+                            }
+
+                            Console.WriteLine("Chats privados existentes: ");
+                            foreach (var chats in chatsPrivados.Keys)
+                            {
+                                Console.WriteLine($"- {chats}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Ainda tem pessoas lá dentro: " + usersNoChatPrivado[porta].Count());
+                            Console.WriteLine("Chats privados existentes: ");
+                            foreach (var chats in chatsPrivados.Keys)
+                            {
+                                Console.WriteLine($"- {chats}");
+                            }
                         }
                     }
                     else if (jsonMensagem.Contains("msg"))

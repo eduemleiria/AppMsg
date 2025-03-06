@@ -71,6 +71,9 @@ namespace Cliente
                 else
                 {
                     MessageBox.Show("Erro ao criar o chat privado.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MDSettings mds = new MDSettings();
+                    this.Hide();
+                    mds.Show();
                 }
                 client.Close();
             }
