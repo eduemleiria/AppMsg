@@ -35,7 +35,8 @@ namespace Servidor
 
             Console.WriteLine("----> Servidor ligado <----");            
 
-            // Enquanto o servidor estiver ligado, aceitar qualquer ip a tentar aceder ao servidor, anunciar essa conexão e começar o HandleClient
+            // Enquanto o servidor estiver ligado, aceitar qualquer ip a tentar aceder ao servidor,
+            // anunciar essa conexão e começar o HandleClient
             while (true)
             {
                 TcpClient client = listener.AcceptTcpClient();
@@ -124,35 +125,31 @@ namespace Servidor
         {
             TcpListener privateChatServer = null;
 
+            if (ListenersDeChatsPrivados.ContainsKey(porta))
+            {
+                Console.WriteLine("Já está a ser usada...");
+                SendResponse(cliente, new { status = "erro", message = "Essa porta já está a ser usada!" });
+            }
+
             try
             {
-                if (ListenersDeChatsPrivados.ContainsKey(porta))
+                privateChatServer = new TcpListener(IPAddress.Any, porta);
+                ListenersDeChatsPrivados[porta] = privateChatServer;
+                privateChatServer.Start();
+                Console.WriteLine($"Chat privado iniciado na porta {porta}.");
+
+                chatsPrivados[porta] = new List<TcpClient>();
+                usersNoChatPrivado[porta] = new List<string>();
+
+                SendResponse(cliente, new { status = "sucesso", message = "Chat privado criado com sucesso!" });
+
+                while (true)
                 {
-                    Console.WriteLine("Já está a ser usada...");
-                    SendResponse(cliente, new { status = "erro", message = "Essa porta já está a ser usada!" });
-                }
-                else
-                {
-                    Console.WriteLine("Porta não está a ser usada...");
-
-                    privateChatServer = new TcpListener(IPAddress.Any, porta);
-                    ListenersDeChatsPrivados[porta] = privateChatServer;
-                    privateChatServer.Start();
-                    Console.WriteLine($"Chat privado iniciado na porta {porta}.");
-
-                    chatsPrivados[porta] = new List<TcpClient>();
-                    usersNoChatPrivado[porta] = new List<string>();
-
-                    SendResponse(cliente, new { status = "sucesso", message = "Chat privado criado com sucesso!" });
-
-                    while (true)
+                    TcpClient client = privateChatServer.AcceptTcpClient();
+                    if (client != null && client.Connected)
                     {
-                        TcpClient client = privateChatServer.AcceptTcpClient();
-                        if (client != null && client.Connected)
-                        {
-                            Console.WriteLine("Novo utilizador conectado ao chat privado.");
-                            Task.Run(() => HandlePrivateChatClient(client, chatPassword, porta, username));
-                        }
+                       Console.WriteLine("Novo utilizador conectado ao chat privado.");
+                       Task.Run(() => HandlePrivateChatClient(client, chatPassword, porta, username));
                     }
                 }
             }
@@ -161,7 +158,6 @@ namespace Servidor
                 Console.WriteLine($"Erro ao iniciar o chat privado: {ex.Message}");
                 if (privateChatServer != null)
                 {
-                    Console.WriteLine("privateChatServer.stop() do startprivatechat");
                     privateChatServer.Stop();
                 }
             }
@@ -190,6 +186,19 @@ namespace Servidor
             foreach (var chats in chatsPrivados.Keys)
             {
                 Console.WriteLine($"- {chats}");
+            }
+
+            if (usersNoChatPrivado[porta].Count() == 2)
+            {
+                Console.WriteLine($"Número de users dentro da sala com a porta {porta}: {usersNoChatPrivado[porta].Count()}");
+                SendResponse(client, new { status = "erro", message = "Chat privado está cheio!" });
+                Console.WriteLine("Estou depois do SendResponse...");
+                return;
+            }
+
+            if (!chatsPrivados.ContainsKey(porta))
+            {
+                Console.WriteLine("estou aquii3");
             }
 
             byte[] buffer = new byte[1024];
@@ -293,13 +302,7 @@ namespace Servidor
                             {
                                 ListenersDeChatsPrivados[porta].Stop();
                                 ListenersDeChatsPrivados.Remove(porta);
-                                Console.WriteLine($"Servidor privado na porta {porta} foi fechado.");
-                            }
-
-                            Console.WriteLine("Chats privados existentes: ");
-                            foreach (var chats in chatsPrivados.Keys)
-                            {
-                                Console.WriteLine($"- {chats}");
+                                Console.WriteLine($"Chat privado na porta {porta} foi liberado.");
                             }
                         }
                         else

@@ -58,6 +58,16 @@ namespace Cliente
                 string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
 
                 Console.WriteLine($"Resposta do servidor: {response}");
+
+                if (response.Contains("erro"))
+                {
+                    Console.WriteLine("estou dentro do verif de 2 pessoas dentro do chat");
+                    this.Close();
+                    MDSettings mds = new MDSettings();
+                    mds.Show();
+                    
+                }
+
                 lbMsgsD.Items.Add("Bem-vindo ao chat!");
                 Task.Run(() => ListenForMessages());
             }
@@ -65,6 +75,9 @@ namespace Cliente
             {
                 Console.WriteLine($"Erro ao conectar ao chat: {ex.Message}");
                 MessageBox.Show($"Erro ao conectar ao chat: {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.Close();
+                MDSettings mds = new MDSettings();
+                mds.Show();
             }
         }
 

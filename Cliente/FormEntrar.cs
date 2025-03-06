@@ -14,10 +14,6 @@ namespace Cliente
 {
     public partial class FormEntrar : Form
     {
-        private TcpListener chatServer;
-        private TcpClient cliente;
-        private NetworkStream stream;
-
         public FormEntrar()
         {
             InitializeComponent();
@@ -36,7 +32,7 @@ namespace Cliente
             string pass = txtPassword.Text;
             string username = Form1.userLogado;
             try
-            {
+            { 
                 ConversaDireta cd = new ConversaDireta(username, porta, pass);
                 this.Hide();
                 cd.Show();
