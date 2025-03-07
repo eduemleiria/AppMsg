@@ -83,6 +83,12 @@
     <Compile Include="ConversaDireta.Designer.cs">
       <DependentUpon>ConversaDireta.cs</DependentUpon>
     </Compile>
+    <Compile Include="CriarSala.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CriarSala.Designer.cs">
+      <DependentUpon>CriarSala.cs</DependentUpon>
+    </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -129,6 +135,9 @@
     </Compile>
     <EmbeddedResource Include="ConversaDireta.resx">
       <DependentUpon>ConversaDireta.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CriarSala.resx">
+      <DependentUpon>CriarSala.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>

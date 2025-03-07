@@ -83,7 +83,7 @@
             this.logoutToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(800, 30);
+            this.menuStrip1.Size = new System.Drawing.Size(800, 28);
             this.menuStrip1.TabIndex = 4;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -94,7 +94,7 @@
             this.iniciarConversaDiretaToolStripMenuItem});
             this.settingsToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("settingsToolStripMenuItem.Image")));
             this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
-            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(96, 26);
+            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(96, 24);
             this.settingsToolStripMenuItem.Text = "Settings";
             // 
             // criarUmaSalaToolStripMenuItem
@@ -102,6 +102,7 @@
             this.criarUmaSalaToolStripMenuItem.Name = "criarUmaSalaToolStripMenuItem";
             this.criarUmaSalaToolStripMenuItem.Size = new System.Drawing.Size(237, 26);
             this.criarUmaSalaToolStripMenuItem.Text = "Criar uma sala";
+            this.criarUmaSalaToolStripMenuItem.Click += new System.EventHandler(this.criarUmaSalaToolStripMenuItem_Click);
             // 
             // iniciarConversaDiretaToolStripMenuItem
             // 
@@ -115,7 +116,7 @@
             this.logoutToolStripMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.logoutToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("logoutToolStripMenuItem.Image")));
             this.logoutToolStripMenuItem.Name = "logoutToolStripMenuItem";
-            this.logoutToolStripMenuItem.Size = new System.Drawing.Size(90, 26);
+            this.logoutToolStripMenuItem.Size = new System.Drawing.Size(90, 24);
             this.logoutToolStripMenuItem.Text = "Logout";
             this.logoutToolStripMenuItem.TextImageRelation = System.Windows.Forms.TextImageRelation.TextBeforeImage;
             this.logoutToolStripMenuItem.Click += new System.EventHandler(this.logoutToolStripMenuItem_Click);

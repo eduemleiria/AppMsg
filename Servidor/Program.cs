@@ -4,19 +4,24 @@ using System.Net.Sockets;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Text.Json;
+using System.Xml.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using static Servidor.Sala;
 
 namespace Servidor
 {
     internal class Program
     {
         // Dicionario dos users conectados na app
-        static Dictionary<string, TcpClient> usersConectados = new Dictionary<string, TcpClient>();
+        private static Dictionary<string, TcpClient> usersConectados = new Dictionary<string, TcpClient>();
         // Dicionario os users conectados a chats privados
-        static Dictionary<int, List<TcpClient>> chatsPrivados = new Dictionary<int, List<TcpClient>>();
+        private static Dictionary<int, List<TcpClient>> chatsPrivados = new Dictionary<int, List<TcpClient>>();
         // Dicionario dos chats privados
-        static Dictionary<int, TcpListener> ListenersDeChatsPrivados = new Dictionary<int, TcpListener>();
+        private static Dictionary<int, TcpListener> ListenersDeChatsPrivados = new Dictionary<int, TcpListener>();
         // Dicionario dos usernames users conectados a chats privados
-        static Dictionary<int, List<string>> usersNoChatPrivado = new Dictionary<int, List<string>>();
+        private static Dictionary<int, List<string>> usersNoChatPrivado = new Dictionary<int, List<string>>();
+        // Dicionario com as salas existentes
+        private static Dictionary<string, Sala> salas = LoadSalas();
 
         // tcplistener é o que "ouve" as conexões do TCPClient (os clientes)
         static TcpListener listener;
@@ -62,7 +67,7 @@ namespace Servidor
                 // Deserialização da mensagem traduzida para o request
                 var request = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
 
-                Console.WriteLine($"Request recebida: {jsonMessage}");
+                Console.WriteLine($"Request recebida no HandleClient: {jsonMessage}");
 
                 if (request != null && request.ContainsKey("action"))
                 {
@@ -104,20 +109,25 @@ namespace Servidor
                             Console.WriteLine("cliente.close() no handleclient");
                             cliente.Close();
                         }
+                    }else if (request["action"] == "criar_sala")
+                    {
+                        string username = request["user"];
+                        string nome_Sala = request["nomeSala"];
+                        string descricao_Sala = request["descricaoSala"];
+                        string data_Hoje = request["dataHoje"];
+                        Console.WriteLine($"A tentar criar a sala: {nome_Sala} \n - Com a descrição:{descricao_Sala} \n - No dia: {data_Hoje} \n - Criada pelo(a): {username} \n");
+                        HandleCriarSala(cliente, username, nome_Sala, descricao_Sala, data_Hoje);
+                    }else if (request["action"] == "load_salas")
+                    {
+                        string username = request["user"];
+                        Console.WriteLine($"A verificar as salas a que o {username} pertence...");
+                        HandleLoadSalas(cliente, username);
                     }
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro: {ex.Message}");
-            }
-            finally
-            {
-                if (!chatsPrivados.Values.Any(chatList => chatList.Contains(cliente)))
-                {
-                    //Console.WriteLine("cliente.close() no handleclient mas no finally");
-                    //cliente.Close();
-                }
             }
         }
 
@@ -163,7 +173,6 @@ namespace Servidor
             }
         }
 
-
         private static void HandlePrivateChatClient(TcpClient client, string chatPassword, int porta, string username)
         {
             if (client == null || !client.Connected)
@@ -194,11 +203,6 @@ namespace Servidor
                 SendResponse(client, new { status = "erro", message = "Chat privado está cheio!" });
                 Console.WriteLine("Estou depois do SendResponse...");
                 return;
-            }
-
-            if (!chatsPrivados.ContainsKey(porta))
-            {
-                Console.WriteLine("estou aquii3");
             }
 
             byte[] buffer = new byte[1024];
@@ -331,7 +335,6 @@ namespace Servidor
             }
         }
 
-
         private static void BroadcastMessage(string message, List<TcpClient> clientes)
         {
             byte[] data = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { mensagem = message }));
@@ -348,6 +351,64 @@ namespace Servidor
                     Console.WriteLine("Falha ao enviar mensagem para o cliente.");
                 }
             }
+        }
+
+        private static void HandleLoadSalas(TcpClient cliente, string username)
+        {
+            Console.WriteLine($"Estou a iniciar a procura das salas do user: {username}");
+
+            string jsonString = File.ReadAllText(salasFile);
+            Dictionary<string, Sala> salas = JsonSerializer.Deserialize<Dictionary<string, Sala>>(jsonString);
+
+            if (salas != null)
+            {
+                List<string> salasDoUser = new List<string>();
+                Console.WriteLine("Salas encontradas:");
+                foreach (var salaEntry in salas)
+                {
+                    Sala sala = salaEntry.Value;
+                    if (sala.Membros.ContainsKey(username))
+                    {
+                        Console.WriteLine($"- {sala.NomeSala}");
+                        salasDoUser.Add(sala.NomeSala);
+                    }
+                }
+
+                if (salasDoUser.Count > 0)
+                {
+                    SendResponse(cliente, new { status = "sucesso", salas = salasDoUser });
+                }
+                else
+                {
+                    SendResponse(cliente, new { status = "erro", message = $"Não foram encontradas salas onde o user {username} pertence." });
+                }
+            }
+            else
+            {
+                Console.WriteLine("Não existem salas dentro do ficheiro.");
+            }
+        }
+
+        private static void HandleCriarSala(TcpClient cliente, string username, string nomeSala, string descriSala, string dataHj)
+        {
+            var role = "admin";
+
+            var salas = LoadSalas();
+
+            salas[nomeSala] = new Sala
+            {
+                NomeSala = nomeSala,
+                Descricao = descriSala,
+                DataCriacao = dataHj,
+                Membros = new Dictionary<string, string> {
+                    { username, role }
+                }
+            };
+
+            SaveSalas(salas);
+            Console.WriteLine("A sala foi criada com sucesso!");
+
+            SendResponse(cliente, new { status = "sucesso", message = "Sala criada com sucesso!"});
         }
 
         private static void HandleRegister(TcpClient client, Dictionary<string, string> request)
@@ -395,6 +456,18 @@ namespace Servidor
         {
             string json = JsonSerializer.Serialize(users);
             File.WriteAllText(usersFile, json);
+        }
+        private static Dictionary<string, Sala> LoadSalas()
+        {
+            if (!File.Exists(salasFile)) return new Dictionary<string, Sala>();
+            string json = File.ReadAllText(salasFile);
+            return JsonSerializer.Deserialize<Dictionary<string, Sala>>(json) ?? new Dictionary<string, Sala>();
+        }
+
+        private static void SaveSalas(Dictionary<string, Sala> salas)
+        {
+            string json = JsonSerializer.Serialize(salas, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(salasFile, json);
         }
 
         private static void SendResponse(TcpClient client, object data)
