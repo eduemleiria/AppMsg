@@ -77,6 +77,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdicionarMembro.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AdicionarMembro.Designer.cs">
+      <DependentUpon>AdicionarMembro.cs</DependentUpon>
+    </Compile>
     <Compile Include="ConversaDireta.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -139,6 +145,9 @@
     <Compile Include="welcome.Designer.cs">
       <DependentUpon>welcome.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="AdicionarMembro.resx">
+      <DependentUpon>AdicionarMembro.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="ConversaDireta.resx">
       <DependentUpon>ConversaDireta.cs</DependentUpon>
     </EmbeddedResource>

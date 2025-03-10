@@ -15,6 +15,7 @@ namespace Cliente
     public partial class detalhesSala: Form
     {
         public string nomeSala;
+        string username = Form1.userLogado;
 
         public detalhesSala(string sala)
         {
@@ -61,6 +62,11 @@ namespace Cliente
                     {
                         lbMembros.Items.Add(string.Format("{0} | {1}", membro.Key, membro.Value));
                     }
+
+                    if (membrosDaSala.ContainsKey(username) && membrosDaSala[username].Contains("admin"))
+                    {
+                        btnAdicionar.Visible = true;
+                    }
                 }
                 else
                 {
@@ -71,6 +77,13 @@ namespace Cliente
             {
                 MessageBox.Show($"Erro ao buscar os dados da sala: {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void btnAdicionar_Click(object sender, EventArgs e)
+        {
+            AdicionarMembro am = new AdicionarMembro(nomeSala);
+            this.Hide();
+            am.Show();
         }
 
         private void btnVoltar_Click(object sender, EventArgs e)

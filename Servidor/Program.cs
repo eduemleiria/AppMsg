@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Intrinsics.X86;
+using System.Security.Principal;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Xml;
 using System.Xml.Linq;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -24,6 +28,8 @@ namespace Servidor
         private static Dictionary<int, List<string>> usersNoChatPrivado = new Dictionary<int, List<string>>();
         // Dicionario com as salas existentes
         private static Dictionary<string, Sala> salas = LoadSalas();
+        // Dicionario com os users existentes
+        private static Dictionary<string, string> users = LoadUsers();
 
         // tcplistener é o que "ouve" as conexões do TCPClient (os clientes)
         static TcpListener listener;
@@ -128,6 +134,12 @@ namespace Servidor
                     {
                         string salaSelec = request["salaSelecionada"];
                         HandleDetalhesSala(cliente, salaSelec);
+                    }else if (request["action"] == "adicionar_membro_sala")
+                    {
+                        string sala = request["sala"];
+                        string convidar = request["convidar"];
+                        string convidado_por = request["convidado_por"];
+                        HandleConvidarParaSala(cliente, sala, convidar, convidado_por);
                     }
                 }
             }
@@ -446,11 +458,37 @@ namespace Servidor
                 {
                     SendResponse(cliente, new { status = "erro", message = $"Não foram encontradas dados da sala..." });
                 }
-
-                Console.WriteLine("sim esta sala existe");
             }
         }
 
+        private static void HandleConvidarParaSala(TcpClient cliente, string salaSeleci, string convidar, string convidado_por)
+        {
+            Console.WriteLine($"A validar o convite ao user {convidar} efetuado pelo user {convidado_por} para a sala '{salaSeleci}'");
+            string jsonSala = File.ReadAllText(salasFile);
+            string jsonUser = File.ReadAllText(usersFile);
+
+            Dictionary<string, Sala> salas = JsonSerializer.Deserialize<Dictionary<string, Sala>>(jsonSala);
+            Dictionary<string, string> users = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonUser);
+
+            if (salas.ContainsKey(salaSeleci))
+            {
+                var sala = salas[salaSeleci];
+
+                if (!sala.NomeSala.Contains(convidar) && users.ContainsKey(convidar))
+                {
+                    string role = "user";
+                    sala.Membros.Add(convidar, role);
+                    SaveSalas(salas);
+                    SendResponse(cliente, new { status = "Sucesso", message = $"O user {convidar} foi adicionado à sala com sucesso!" });
+
+                }
+                else
+                {
+                    SendResponse(cliente, new { status = "Erro", message = $"O user {convidar} não existe..." });
+                    Console.WriteLine("Esse utilizador não existe...");
+                }
+            }
+        }
         private static void HandleRegister(TcpClient client, Dictionary<string, string> request)
         {
             string username = request["username"];
