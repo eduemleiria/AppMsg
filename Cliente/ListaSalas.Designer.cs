@@ -38,6 +38,7 @@
             this.criarUmaSalaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.iniciarConversaDiretaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.logoutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnDetalhes = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -45,18 +46,19 @@
             // 
             this.lbSalas.FormattingEnabled = true;
             this.lbSalas.ItemHeight = 16;
-            this.lbSalas.Location = new System.Drawing.Point(1, 35);
+            this.lbSalas.Location = new System.Drawing.Point(1, 51);
             this.lbSalas.Name = "lbSalas";
-            this.lbSalas.Size = new System.Drawing.Size(171, 404);
+            this.lbSalas.Size = new System.Drawing.Size(171, 388);
             this.lbSalas.TabIndex = 0;
+            this.lbSalas.SelectedIndexChanged += new System.EventHandler(this.lbSalas_SelectedIndexChanged);
             // 
             // lbMsgs
             // 
             this.lbMsgs.FormattingEnabled = true;
             this.lbMsgs.ItemHeight = 16;
-            this.lbMsgs.Location = new System.Drawing.Point(178, 35);
+            this.lbMsgs.Location = new System.Drawing.Point(178, 51);
             this.lbMsgs.Name = "lbMsgs";
-            this.lbMsgs.Size = new System.Drawing.Size(619, 372);
+            this.lbMsgs.Size = new System.Drawing.Size(619, 356);
             this.lbMsgs.TabIndex = 1;
             // 
             // txtMsg
@@ -65,6 +67,7 @@
             this.txtMsg.Name = "txtMsg";
             this.txtMsg.Size = new System.Drawing.Size(546, 22);
             this.txtMsg.TabIndex = 2;
+            this.txtMsg.Visible = false;
             // 
             // btnEnviarMsg
             // 
@@ -74,6 +77,7 @@
             this.btnEnviarMsg.TabIndex = 3;
             this.btnEnviarMsg.Text = "Enviar";
             this.btnEnviarMsg.UseVisualStyleBackColor = true;
+            this.btnEnviarMsg.Visible = false;
             // 
             // menuStrip1
             // 
@@ -83,7 +87,7 @@
             this.logoutToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(800, 28);
+            this.menuStrip1.Size = new System.Drawing.Size(800, 30);
             this.menuStrip1.TabIndex = 4;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -94,7 +98,7 @@
             this.iniciarConversaDiretaToolStripMenuItem});
             this.settingsToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("settingsToolStripMenuItem.Image")));
             this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
-            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(96, 24);
+            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(96, 26);
             this.settingsToolStripMenuItem.Text = "Settings";
             // 
             // criarUmaSalaToolStripMenuItem
@@ -116,16 +120,29 @@
             this.logoutToolStripMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.logoutToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("logoutToolStripMenuItem.Image")));
             this.logoutToolStripMenuItem.Name = "logoutToolStripMenuItem";
-            this.logoutToolStripMenuItem.Size = new System.Drawing.Size(90, 24);
+            this.logoutToolStripMenuItem.Size = new System.Drawing.Size(90, 26);
             this.logoutToolStripMenuItem.Text = "Logout";
             this.logoutToolStripMenuItem.TextImageRelation = System.Windows.Forms.TextImageRelation.TextBeforeImage;
             this.logoutToolStripMenuItem.Click += new System.EventHandler(this.logoutToolStripMenuItem_Click);
+            // 
+            // btnDetalhes
+            // 
+            this.btnDetalhes.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnDetalhes.Location = new System.Drawing.Point(178, 22);
+            this.btnDetalhes.Name = "btnDetalhes";
+            this.btnDetalhes.Size = new System.Drawing.Size(114, 28);
+            this.btnDetalhes.TabIndex = 5;
+            this.btnDetalhes.Text = "Detalhes";
+            this.btnDetalhes.UseVisualStyleBackColor = true;
+            this.btnDetalhes.Visible = false;
+            this.btnDetalhes.Click += new System.EventHandler(this.btnDetalhes_Click);
             // 
             // ListaSalas
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 446);
+            this.Controls.Add(this.btnDetalhes);
             this.Controls.Add(this.btnEnviarMsg);
             this.Controls.Add(this.txtMsg);
             this.Controls.Add(this.lbMsgs);
@@ -153,5 +170,6 @@
         private System.Windows.Forms.ToolStripMenuItem criarUmaSalaToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem iniciarConversaDiretaToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem logoutToolStripMenuItem;
+        private System.Windows.Forms.Button btnDetalhes;
     }
 }

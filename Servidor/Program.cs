@@ -4,7 +4,9 @@ using System.Net.Sockets;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using static Servidor.Sala;
 
@@ -122,6 +124,10 @@ namespace Servidor
                         string username = request["user"];
                         Console.WriteLine($"A verificar as salas a que o {username} pertence...");
                         HandleLoadSalas(cliente, username);
+                    }else if (request["action"] == "detalhes_da_sala")
+                    {
+                        string salaSelec = request["salaSelecionada"];
+                        HandleDetalhesSala(cliente, salaSelec);
                     }
                 }
             }
@@ -409,6 +415,40 @@ namespace Servidor
             Console.WriteLine("A sala foi criada com sucesso!");
 
             SendResponse(cliente, new { status = "sucesso", message = "Sala criada com sucesso!"});
+        }
+
+        private static void HandleDetalhesSala(TcpClient cliente, string salaSeleci)
+        {
+            Console.WriteLine($"A recolher os dados da sala '{salaSeleci}'");
+            string jsonString = File.ReadAllText(salasFile);
+            Dictionary<string, Sala> salas = JsonSerializer.Deserialize<Dictionary<string, Sala>>(jsonString);
+
+
+            if (salas.ContainsKey(salaSeleci))
+            {
+                var sala = salas[salaSeleci];
+                List<string> detalhesDaSala = new List<string>();
+                Dictionary<string, string> membrosDaSala = new Dictionary<string, string>();
+
+                foreach(var membro in sala.Membros)
+                {
+                    Console.WriteLine(membro);
+                    membrosDaSala.Add(membro.Key, membro.Value);
+                }
+
+                detalhesDaSala.AddRange(new List<string>() { sala.NomeSala, sala.Descricao, sala.DataCriacao });
+
+                if (detalhesDaSala.Count > 0 && membrosDaSala.Count > 0)
+                {
+                    SendResponse(cliente, new { status = "sucesso", detalhes = detalhesDaSala, membros = membrosDaSala });
+                }
+                else
+                {
+                    SendResponse(cliente, new { status = "erro", message = $"Não foram encontradas dados da sala..." });
+                }
+
+                Console.WriteLine("sim esta sala existe");
+            }
         }
 
         private static void HandleRegister(TcpClient client, Dictionary<string, string> request)

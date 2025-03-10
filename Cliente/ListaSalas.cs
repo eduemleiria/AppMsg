@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
@@ -56,6 +58,34 @@ namespace Cliente
             {
                 Console.WriteLine("Erro ao carregar salas.");
             }
+        }
+
+        private void lbSalas_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string salaSelec = lbSalas.SelectedItem.ToString();
+            Console.WriteLine($"Sala selecionada: {salaSelec}");
+            string username = Form1.userLogado;
+
+            var request = JsonSerializer.Serialize(new
+            {
+                action = "chat_da_sala",
+                salaSelecionada = salaSelec,
+                user = username
+            });
+
+            Console.WriteLine($"Request de dados da sala: {request}");
+
+            btnDetalhes.Visible = true;
+            txtMsg.Visible = true;
+            btnEnviarMsg.Visible = true;
+        }
+
+        private void btnDetalhes_Click(object sender, EventArgs e)
+        {
+            string salaSelec = lbSalas.SelectedItem.ToString();
+            detalhesSala ds = new detalhesSala(salaSelec);
+            this.Hide();
+            ds.Show();
         }
 
         private void logoutToolStripMenuItem_Click(object sender, EventArgs e)
