@@ -98,6 +98,7 @@ namespace Cliente
                 Console.WriteLine("A remover o user...");
 
                 string user_remover = lbMembros.GetItemText(lbMembros.SelectedItem);
+                this.userSelec = user_remover;
 
                 Console.WriteLine("user selecionado: " + user_remover);
 
@@ -146,11 +147,9 @@ namespace Cliente
 
         private void lbMembros_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string userSelecionado = lbMembros.SelectedItem.ToString();
-            this.userSelec = userSelecionado;
-            if (userSelecionado != null)
+            if (userSelec != null)
             {
-                labelUserRole.Text = userSelecionado;
+                labelUserRole.Text = userSelec;
                 labelUserRole.Visible = true;
                 cbRoles.Visible = true;
                 btnAtualizar.Visible = true;
@@ -239,10 +238,17 @@ namespace Cliente
 
                 var response = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonResponse);
 
-                if (jsonResponse.Contains("sucesso"))
+                if (jsonResponse.Contains("sucesso") && jsonResponse.Contains("removido"))
                 {
                     lbMembros.Items.Remove(username);
                     MessageBox.Show($"Saíste da sala com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ListaSalas ls = new ListaSalas();
+                    this.Hide();
+                    ls.Show();
+                }else if(jsonResponse.Contains("sucesso") && jsonResponse.Contains("apagado"))
+                {
+                    lbMembros.Items.Remove(username);
+                    MessageBox.Show($"A sala {nomeSala} foi apagada com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     ListaSalas ls = new ListaSalas();
                     this.Hide();
                     ls.Show();

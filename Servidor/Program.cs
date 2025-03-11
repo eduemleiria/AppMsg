@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Net;
 using System.Net.Sockets;
@@ -518,11 +519,34 @@ namespace Servidor
                 var sala = salas[salaSeleci];
                 string[] user_remover = user_removido.Split(new string[] { " | " }, StringSplitOptions.None);
                 Console.WriteLine($"User a remover: {user_remover[0]}");
-                if (sala.Membros.ContainsKey(user_remover[0]))
+                
+                if (sala.Membros.ContainsKey(user_remover[0]) && sala.Membros.Count() >= 2)
                 {
                     sala.Membros.Remove(user_remover[0]);
+                    if (sala.Membros.Count() == 1)
+                    {
+                        var ultimo_user = sala.Membros.Last();
+                        char[] caracteres_nq = [',', '[', ']', ' '];
+                        string[] ult_user = ultimo_user.ToString().Split(caracteres_nq);
+                        Console.WriteLine($"{sala.Membros.ContainsKey(ult_user[1])}");
+                        Console.WriteLine(ult_user[1]);
+                        sala.Membros.Remove(ult_user[1]);
+                        sala.Membros.Add(ult_user[1], "admin");
+                        SaveSalas(salas);
+                    }
+                    else
+                    {
+                        Console.WriteLine("ainda existe mais q um user");
+                    }
                     SaveSalas(salas);
                     SendResponse(cliente, new { status = "Sucesso", message = $"O user {user_removido[0]} foi removido da sala com sucesso!" });
+                }else if (sala.Membros.ContainsKey(user_remover[0]) && sala.Membros.Count() == 1)
+                {
+                    Console.WriteLine("A apagar sala...");
+                    sala.Membros.Remove(user_remover[0]);
+                    salas.Remove(salaSeleci);
+                    SaveSalas(salas);
+                    SendResponse(cliente, new { status = "Sucesso", message = $"A sala {salaSeleci} foi apagado com sucesso!" });
                 }
                 else
                 {
