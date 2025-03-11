@@ -37,6 +37,11 @@
             this.label3 = new System.Windows.Forms.Label();
             this.labelData = new System.Windows.Forms.Label();
             this.btnAdicionar = new System.Windows.Forms.Button();
+            this.btnRemover = new System.Windows.Forms.Button();
+            this.btnAtualizar = new System.Windows.Forms.Button();
+            this.cbRoles = new System.Windows.Forms.ComboBox();
+            this.labelUserRole = new System.Windows.Forms.Label();
+            this.btnSair = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnVoltar
@@ -67,6 +72,7 @@
             this.lbMembros.Name = "lbMembros";
             this.lbMembros.Size = new System.Drawing.Size(257, 164);
             this.lbMembros.TabIndex = 2;
+            this.lbMembros.SelectedIndexChanged += new System.EventHandler(this.lbMembros_SelectedIndexChanged);
             // 
             // label1
             // 
@@ -127,11 +133,70 @@
             this.btnAdicionar.Visible = false;
             this.btnAdicionar.Click += new System.EventHandler(this.btnAdicionar_Click);
             // 
+            // btnRemover
+            // 
+            this.btnRemover.Location = new System.Drawing.Point(93, 174);
+            this.btnRemover.Name = "btnRemover";
+            this.btnRemover.Size = new System.Drawing.Size(80, 23);
+            this.btnRemover.TabIndex = 9;
+            this.btnRemover.Text = "Remover";
+            this.btnRemover.UseVisualStyleBackColor = true;
+            this.btnRemover.Visible = false;
+            this.btnRemover.Click += new System.EventHandler(this.btnRemover_Click);
+            // 
+            // btnAtualizar
+            // 
+            this.btnAtualizar.Location = new System.Drawing.Point(192, 372);
+            this.btnAtualizar.Name = "btnAtualizar";
+            this.btnAtualizar.Size = new System.Drawing.Size(77, 23);
+            this.btnAtualizar.TabIndex = 10;
+            this.btnAtualizar.Text = "Atualizar";
+            this.btnAtualizar.UseVisualStyleBackColor = true;
+            this.btnAtualizar.Visible = false;
+            this.btnAtualizar.Click += new System.EventHandler(this.btnAtualizar_Click);
+            // 
+            // cbRoles
+            // 
+            this.cbRoles.FormattingEnabled = true;
+            this.cbRoles.Items.AddRange(new object[] {
+            "admin",
+            "user"});
+            this.cbRoles.Location = new System.Drawing.Point(93, 371);
+            this.cbRoles.Name = "cbRoles";
+            this.cbRoles.Size = new System.Drawing.Size(92, 24);
+            this.cbRoles.TabIndex = 11;
+            this.cbRoles.Visible = false;
+            // 
+            // labelUserRole
+            // 
+            this.labelUserRole.AutoSize = true;
+            this.labelUserRole.Location = new System.Drawing.Point(12, 374);
+            this.labelUserRole.Name = "labelUserRole";
+            this.labelUserRole.Size = new System.Drawing.Size(44, 16);
+            this.labelUserRole.TabIndex = 12;
+            this.labelUserRole.Text = "label4";
+            this.labelUserRole.Visible = false;
+            // 
+            // btnSair
+            // 
+            this.btnSair.Location = new System.Drawing.Point(192, 11);
+            this.btnSair.Name = "btnSair";
+            this.btnSair.Size = new System.Drawing.Size(75, 23);
+            this.btnSair.TabIndex = 13;
+            this.btnSair.Text = "Sair";
+            this.btnSair.UseVisualStyleBackColor = true;
+            this.btnSair.Click += new System.EventHandler(this.btnSair_Click);
+            // 
             // detalhesSala
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(281, 377);
+            this.ClientSize = new System.Drawing.Size(281, 410);
+            this.Controls.Add(this.btnSair);
+            this.Controls.Add(this.labelUserRole);
+            this.Controls.Add(this.cbRoles);
+            this.Controls.Add(this.btnAtualizar);
+            this.Controls.Add(this.btnRemover);
             this.Controls.Add(this.btnAdicionar);
             this.Controls.Add(this.labelData);
             this.Controls.Add(this.label3);
@@ -160,5 +225,10 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label labelData;
         private System.Windows.Forms.Button btnAdicionar;
+        private System.Windows.Forms.Button btnRemover;
+        private System.Windows.Forms.Button btnAtualizar;
+        private System.Windows.Forms.ComboBox cbRoles;
+        private System.Windows.Forms.Label labelUserRole;
+        private System.Windows.Forms.Button btnSair;
     }
 }

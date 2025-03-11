@@ -55,7 +55,7 @@ namespace Cliente
 
                 if (response["status"].ToString() == "Sucesso")
                 {
-                    MessageBox.Show($"O user {userAdd} foi adicionado à sala!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"O user {userAdd} foi adicionado à sala!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     detalhesSala ds = new detalhesSala(nomeDaSala);
                     this.Hide();
                     ds.Show();

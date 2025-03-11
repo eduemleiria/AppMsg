@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Intrinsics.X86;
 using System.Security.Principal;
 using System.Text;
@@ -62,6 +64,7 @@ namespace Servidor
         {
             // Inicializar o NetworkStream que recebe os dados do cliente conectado
             NetworkStream stream = cliente.GetStream();
+
             // Serve de armazenamento temporário para ler ou escrever dados
             byte[] buffer = new byte[1024];
 
@@ -140,6 +143,19 @@ namespace Servidor
                         string convidar = request["convidar"];
                         string convidado_por = request["convidado_por"];
                         HandleConvidarParaSala(cliente, sala, convidar, convidado_por);
+                    }else if (request["action"] == "remover_user_da_sala")
+                    {
+                        string sala = request["sala"];
+                        string user_removido = request["user_a_remover"];
+                        string removido_por = request["removido_por"];
+                        HandleRemoverUserSala(cliente, sala, user_removido, removido_por);
+                    }else if (request["action"] == "atualizar_role")
+                    {
+                        string sala = request["sala"];
+                        string user_a_atualizar = request["user_a_atualizar"];
+                        string role_escolhida = request["role_escolhida"];
+                        string atualizado_por = request["atualizado_por"];
+                        HandleAtualizarRole(cliente, sala, user_a_atualizar, role_escolhida, atualizado_por);
                     }
                 }
             }
@@ -489,6 +505,76 @@ namespace Servidor
                 }
             }
         }
+
+        private static void HandleRemoverUserSala(TcpClient cliente, string salaSeleci, string user_removido, string removido_por)
+        {
+            Console.WriteLine($"A validar a remoção do user {user_removido} efetuado pelo user {removido_por} para a sala '{salaSeleci}'");
+            string jsonSala = File.ReadAllText(salasFile);
+
+            Dictionary<string, Sala> salas = JsonSerializer.Deserialize<Dictionary<string, Sala>>(jsonSala);
+
+            if (salas.ContainsKey(salaSeleci))
+            {
+                var sala = salas[salaSeleci];
+                string[] user_remover = user_removido.Split(new string[] { " | " }, StringSplitOptions.None);
+                Console.WriteLine($"User a remover: {user_remover[0]}");
+                if (sala.Membros.ContainsKey(user_remover[0]))
+                {
+                    sala.Membros.Remove(user_remover[0]);
+                    SaveSalas(salas);
+                    SendResponse(cliente, new { status = "Sucesso", message = $"O user {user_removido[0]} foi removido da sala com sucesso!" });
+                }
+                else
+                {
+                    SendResponse(cliente, new { status = "Erro", message = $"Erro ao tentar remover o user {user_removido}..." });
+                }
+            }
+        }
+
+        private static void HandleAtualizarRole(TcpClient cliente, string salaSeleci, string user_a_atualizar, string role_escolhida, string atualizado_por)
+        {
+            Console.WriteLine($"A atualizar a role do {user_a_atualizar} para {role_escolhida} pelo {atualizado_por} na sala {salaSeleci}");
+            string jsonSala = File.ReadAllText(salasFile);
+
+            Dictionary<string, Sala> salas = JsonSerializer.Deserialize<Dictionary<string, Sala>>(jsonSala);
+
+            if (salas.ContainsKey(salaSeleci))
+            {
+                var sala = salas[salaSeleci];
+
+                string[] user_atualizar = user_a_atualizar.Split(new string[] { " | " }, StringSplitOptions.None);
+                var user = sala.Membros.ContainsKey(user_atualizar[0]);
+
+                if (sala.Membros.ContainsKey(user_atualizar[0]))
+                {
+                    if (role_escolhida == "admin" && user_atualizar[1] == "user")
+                    {
+                        sala.Membros.Remove(user_atualizar[0]);
+                        sala.Membros.Add(user_atualizar[0], "admin");
+                        SaveSalas(salas);
+                        Console.WriteLine($"User atualizado para admin: {user}");
+                        SendResponse(cliente, new { status = "Sucesso", message = $"O user {user_atualizar[0]} foi atualizado com sucesso para admin!" });
+                    }
+                    else if(role_escolhida == "user" && user_atualizar[1] == "admin")
+                    {
+                        sala.Membros.Remove(user_atualizar[0]);
+                        sala.Membros.Add(user_atualizar[0], "user");
+                        SaveSalas(salas);
+                        Console.WriteLine($"User atualizado para user: {user}");
+                        SendResponse(cliente, new { status = "Sucesso", message = $"O user {user_atualizar[0]} foi atualizado com sucesso para user!" });
+                    }
+                    else
+                    {
+                        Console.WriteLine("ele ja tem essa role");
+                    }
+                }
+                else
+                {
+                    SendResponse(cliente, new { status = "Erro", message = $"Erro ao tentar remover o user {user_atualizar}..." });
+                }
+            }
+        }
+
         private static void HandleRegister(TcpClient client, Dictionary<string, string> request)
         {
             string username = request["username"];
