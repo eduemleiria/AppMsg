@@ -2,16 +2,20 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Net.Configuration;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Cliente
 {
     public partial class ListaSalas : Form
     {
+        public string salaSelec;
 
         public ListaSalas()
         {
@@ -23,7 +27,6 @@ namespace Cliente
         {
             TcpClient client = new TcpClient("127.0.0.1", 3700);
             NetworkStream stream = client.GetStream();
-
             string username = Form1.userLogado;
 
             var request = JsonSerializer.Serialize(new
@@ -56,14 +59,14 @@ namespace Cliente
             }
             else
             {
-                Console.WriteLine("Erro ao carregar salas.");
+                MessageBox.Show("Erro ao carregar salas.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void lbSalas_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string salaSelec = lbSalas.SelectedItem.ToString();
-            Console.WriteLine($"Sala selecionada: {salaSelec}");
+            string salaSelecionada = lbSalas.SelectedItem.ToString();
+            this.salaSelec = salaSelecionada;
             string username = Form1.userLogado;
 
             var request = JsonSerializer.Serialize(new
@@ -75,17 +78,9 @@ namespace Cliente
 
             Console.WriteLine($"Request de dados da sala: {request}");
 
-            btnDetalhes.Visible = true;
-            txtMsg.Visible = true;
-            btnEnviarMsg.Visible = true;
-        }
-
-        private void btnDetalhes_Click(object sender, EventArgs e)
-        {
-            string salaSelec = lbSalas.SelectedItem.ToString();
-            detalhesSala ds = new detalhesSala(salaSelec);
+            ChatSala cs = new ChatSala(salaSelecionada);
             this.Hide();
-            ds.Show();
+            cs.Show();
         }
 
         private void logoutToolStripMenuItem_Click(object sender, EventArgs e)

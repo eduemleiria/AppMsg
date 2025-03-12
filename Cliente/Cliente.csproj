@@ -83,6 +83,12 @@
     <Compile Include="AdicionarMembro.Designer.cs">
       <DependentUpon>AdicionarMembro.cs</DependentUpon>
     </Compile>
+    <Compile Include="ChatSala.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ChatSala.Designer.cs">
+      <DependentUpon>ChatSala.cs</DependentUpon>
+    </Compile>
     <Compile Include="ConversaDireta.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -147,6 +153,9 @@
     </Compile>
     <EmbeddedResource Include="AdicionarMembro.resx">
       <DependentUpon>AdicionarMembro.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ChatSala.resx">
+      <DependentUpon>ChatSala.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ConversaDireta.resx">
       <DependentUpon>ConversaDireta.cs</DependentUpon>

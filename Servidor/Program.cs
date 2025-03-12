@@ -1,21 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
+﻿using System.Collections.Specialized;
 using System.Data;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.JavaScript;
-using System.Runtime.Intrinsics.X86;
-using System.Security.Principal;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Xml;
-using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using static Servidor.Sala;
 
 namespace Servidor
 {
@@ -33,12 +22,16 @@ namespace Servidor
         private static Dictionary<string, Sala> salas = LoadSalas();
         // Dicionario com os users existentes
         private static Dictionary<string, string> users = LoadUsers();
+        // Dicionario com as mensagens dos users em salas
+        private static Dictionary<int, Mensagem> mensagens = LoadMensagens();
 
         // tcplistener é o que "ouve" as conexões do TCPClient (os clientes)
         static TcpListener listener;
 
         static string usersFile = "users.json";
         static string salasFile = "salas.json";
+        static string msgsFile = "msgsPorSala.json";
+        static int idC = 0;
 
         static void Main(string[] args)
         {
@@ -65,10 +58,8 @@ namespace Servidor
         {
             // Inicializar o NetworkStream que recebe os dados do cliente conectado
             NetworkStream stream = cliente.GetStream();
-
             // Serve de armazenamento temporário para ler ou escrever dados
             byte[] buffer = new byte[1024];
-
             try
             {
                 // Lê os dados recebidos da stream
@@ -83,6 +74,7 @@ namespace Servidor
 
                 if (request != null && request.ContainsKey("action"))
                 {
+                    
                     if (request["action"] == "register")
                     {
                         HandleRegister(cliente, request);
@@ -157,6 +149,15 @@ namespace Servidor
                         string role_escolhida = request["role_escolhida"];
                         string atualizado_por = request["atualizado_por"];
                         HandleAtualizarRole(cliente, sala, user_a_atualizar, role_escolhida, atualizado_por);
+                    }else if (request["action"] == "enviar_msg_sala")
+                    {
+                        int id = buscarUltimoIdMsg();
+                        Console.WriteLine(id);
+                        string sala = request["sala"];
+                        string emissor = request["user"];
+                        string dataHora = request["dataHora"];
+                        string msg = request["mensagem"];
+                        HandleEnviarMsg(cliente, sala, id, emissor, dataHora, msg);
                     }
                 }
             }
@@ -316,7 +317,9 @@ namespace Servidor
                     if (jsonMensagem.Contains("sair_chat_privado"))
                     {
                         BroadcastMessage($"O utilizador {username} saiu do chat!", chatsPrivados[porta]);
+                        Console.WriteLine($"A tentar remover o client: {client.Client.RemoteEndPoint}");
                         chatsPrivados[porta].Remove(client);
+
                         Console.WriteLine($"O utilizador {username} saiu do chat privado.");
                         usersNoChatPrivado[porta].Remove(username);
 
@@ -599,6 +602,47 @@ namespace Servidor
             }
         }
 
+        private static int buscarUltimoIdMsg()
+        {
+            string jsonMsg = File.ReadAllText(msgsFile);
+            Dictionary<int, Mensagem> mensagens = JsonSerializer.Deserialize<Dictionary<int, Mensagem>>(jsonMsg);
+
+            if (string.IsNullOrWhiteSpace(jsonMsg))
+            {
+                return 1;
+            }
+
+            if (mensagens == null || mensagens.Count == 0)
+            {
+                return 1;
+            }
+
+            int lastId = mensagens.Keys.Max();
+            return lastId + 1;
+        }
+
+
+        private static void HandleEnviarMsg(TcpClient cliente, string salaSeleci, int id, string emissor, string dataHoraHj, string msg)
+        {
+            Console.WriteLine($"{id} A processar a mensagem '{msg}' enviada por '{emissor}' na sala '{salaSeleci} ás {dataHoraHj}'");
+
+            var mensagens = LoadMensagens();
+            mensagens[id] = new Mensagem
+            {
+                IdMsg = id,
+                NomeSala = salaSeleci,
+                User = emissor,
+                DataEnvio = dataHoraHj,
+                Msg = msg
+            };
+
+            SaveMensagens(mensagens);
+            Console.WriteLine("A mensagem foi guardada com sucesso!");
+            SendResponse(cliente, new { status = "sucesso", sala = $"{salaSeleci}", emissor = $"{emissor}", mensagem = $"{msg}" });
+        }
+
+
+
         private static void HandleRegister(TcpClient client, Dictionary<string, string> request)
         {
             string username = request["username"];
@@ -656,6 +700,19 @@ namespace Servidor
         {
             string json = JsonSerializer.Serialize(salas, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(salasFile, json);
+        }
+
+        public static Dictionary<int, Mensagem> LoadMensagens()
+        {
+            if (!File.Exists(msgsFile)) return new Dictionary<int, Mensagem>();
+            string json = File.ReadAllText(msgsFile);
+            return JsonSerializer.Deserialize<Dictionary<int, Mensagem>>(json) ?? new Dictionary<int, Mensagem>();
+        }
+
+        private static void SaveMensagens(Dictionary<int, Mensagem> mensagens)
+        {
+            string json = JsonSerializer.Serialize(mensagens, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(msgsFile, json);
         }
 
         private static void SendResponse(TcpClient client, object data)

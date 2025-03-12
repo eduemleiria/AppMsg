@@ -11,7 +11,7 @@ namespace Cliente
 {
     public partial class Form1 : Form
     {
-        private TcpClient cliente;
+        public static TcpClient cliente;
         private NetworkStream stream;
         public static string userLogado = string.Empty;
 

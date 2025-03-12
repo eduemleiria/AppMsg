@@ -140,9 +140,9 @@ namespace Cliente
 
         private void btnVoltar_Click(object sender, EventArgs e)
         {
-            ListaSalas ls = new ListaSalas();
+            ChatSala cs = new ChatSala(nomeSala);
             this.Hide();
-            ls.Show();
+            cs.Show();
         }
 
         private void lbMembros_SelectedIndexChanged(object sender, EventArgs e)
