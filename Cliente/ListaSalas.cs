@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Net.Configuration;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -16,6 +17,7 @@ namespace Cliente
     public partial class ListaSalas : Form
     {
         public string salaSelec;
+        private List<KeyValuePair<int, string>> listaSalas = new List<KeyValuePair<int, string>>();
 
         public ListaSalas()
         {
@@ -48,39 +50,51 @@ namespace Cliente
 
             if (response["status"].ToString() == "sucesso" && response.ContainsKey("salas"))
             {
-                var salasEncontradas = JsonSerializer.Deserialize<List<string>>(response["salas"].ToString());
+                var salasEncontradas = JsonSerializer.Deserialize<Dictionary<int, string>>(response["salas"].ToString());
 
                 Console.WriteLine("Salas encontradas:");
-                foreach (string sala in salasEncontradas)
+                foreach (var sala in salasEncontradas)
                 {
-                    Console.WriteLine($"- {sala}");
-                    lbSalas.Items.Add(sala);
+                    Console.WriteLine($"- {sala.Key} | {sala.Value}");
+
+                    listaSalas.Add(new KeyValuePair<int, string>(sala.Key, sala.Value));
+                    lbSalas.Items.Add(sala.Value);
                 }
             }
             else
             {
-                MessageBox.Show("Erro ao carregar salas.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Console.WriteLine("O user não pertence a nenhuma sala...");
             }
         }
 
         private void lbSalas_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string salaSelecionada = lbSalas.SelectedItem.ToString();
-            this.salaSelec = salaSelecionada;
-            string username = Form1.userLogado;
-
-            var request = JsonSerializer.Serialize(new
+            if (lbSalas.SelectedIndex >= 0)
             {
-                action = "chat_da_sala",
-                salaSelecionada = salaSelec,
-                user = username
-            });
+                string salaSelec = lbSalas.SelectedItem.ToString();
+                int idSala = lbSalas.SelectedIndex; 
 
-            Console.WriteLine($"Request de dados da sala: {request}");
+                var salaEscolhida = listaSalas[idSala];
 
-            ChatSala cs = new ChatSala(salaSelecionada);
-            this.Hide();
-            cs.Show();
+                int salaId = salaEscolhida.Key;
+                string salaSelecionada = salaEscolhida.Value;
+
+                this.salaSelec = salaSelecionada;
+                string username = Form1.userLogado;
+
+                var request = JsonSerializer.Serialize(new
+                {
+                    action = "chat_da_sala",
+                    salaSelecionada = salaSelec,
+                    user = username
+                });
+
+                Console.WriteLine($"Request de dados da sala: {request}");
+
+                ChatSala cs = new ChatSala(salaId, salaSelecionada);
+                this.Hide();
+                cs.Show();
+            }
         }
 
         private void logoutToolStripMenuItem_Click(object sender, EventArgs e)

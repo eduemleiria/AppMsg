@@ -16,14 +16,16 @@ namespace Cliente
     public partial class detalhesSala: Form
     {
         public string nomeSala;
+        public int salaId;
         string username = Form1.userLogado;
         public string userSelec;
         TcpClient cliente = new TcpClient("127.0.0.1", 3700);
 
-        public detalhesSala(string sala)
+        public detalhesSala(int idSala, string sala)
         {
             InitializeComponent();
             this.nomeSala = sala;
+            this.salaId = idSala;
             LoadDadosSala();
         }
 
@@ -37,6 +39,7 @@ namespace Cliente
                 var request = JsonSerializer.Serialize(new
                 {
                     action = "detalhes_da_sala",
+                    idSala = salaId.ToString(),
                     salaSelecionada = nomeSala
                 });
 
@@ -84,7 +87,7 @@ namespace Cliente
 
         private void btnAdicionar_Click(object sender, EventArgs e)
         {
-            AdicionarMembro am = new AdicionarMembro(nomeSala);
+            AdicionarMembro am = new AdicionarMembro(salaId, nomeSala);
             this.Hide();
             am.Show();
         }
@@ -105,7 +108,7 @@ namespace Cliente
                 var request = JsonSerializer.Serialize(new
                 {
                     action = "remover_user_da_sala",
-                    sala = nomeSala,
+                    idSala = salaId.ToString(),
                     user_a_remover = user_remover,
                     removido_por = username
                 });
@@ -140,19 +143,22 @@ namespace Cliente
 
         private void btnVoltar_Click(object sender, EventArgs e)
         {
-            ChatSala cs = new ChatSala(nomeSala);
+            ChatSala cs = new ChatSala(salaId, nomeSala);
             this.Hide();
             cs.Show();
         }
 
         private void lbMembros_SelectedIndexChanged(object sender, EventArgs e)
         {
+            this.userSelec = lbMembros.GetItemText(lbMembros.SelectedItem);
+
             if (userSelec != null)
             {
                 labelUserRole.Text = userSelec;
                 labelUserRole.Visible = true;
                 cbRoles.Visible = true;
                 btnAtualizar.Visible = true;
+                Console.WriteLine(labelUserRole.Text);
             }
         }
 
@@ -169,7 +175,7 @@ namespace Cliente
                 var request = JsonSerializer.Serialize(new
                 {
                     action = "atualizar_role",
-                    sala = nomeSala,
+                    idSala = salaId.ToString(),
                     user_a_atualizar = user_atualizar,
                     role_escolhida = role_selecionada,
                     atualizado_por = username
@@ -189,13 +195,13 @@ namespace Cliente
                 if (response["message"].ToString().Contains("para admin!"))
                 {
                     MessageBox.Show($"O user {userSelec} foi promovido para admin!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    detalhesSala ds = new detalhesSala(nomeSala);
+                    detalhesSala ds = new detalhesSala(salaId, nomeSala);
                     this.Hide();
                     ds.Show();
                 }else if (response["message"].ToString().Contains("para user!"))
                 {
                     MessageBox.Show($"O user {userSelec} foi despromovido para user!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    detalhesSala ds = new detalhesSala(nomeSala);
+                    detalhesSala ds = new detalhesSala(salaId,nomeSala);
                     this.Hide();
                     ds.Show();
                 }
@@ -222,7 +228,7 @@ namespace Cliente
                 var request = JsonSerializer.Serialize(new
                 {
                     action = "remover_user_da_sala",
-                    sala = nomeSala,
+                    idSala = salaId.ToString(),
                     user_a_remover = username,
                     removido_por = username
                 });

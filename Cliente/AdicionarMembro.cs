@@ -16,11 +16,13 @@ namespace Cliente
     public partial class AdicionarMembro: Form
     {
         public string nomeDaSala;
+        public int salaId;
         public string username = Form1.userLogado;
 
-        public AdicionarMembro(string nomeSala)
+        public AdicionarMembro(int idSala, string nomeSala)
         {
             this.nomeDaSala = nomeSala;
+            this.salaId = idSala;
             InitializeComponent();
         }
 
@@ -37,7 +39,7 @@ namespace Cliente
                 var request = JsonSerializer.Serialize(new
                 {
                     action = "adicionar_membro_sala",
-                    sala = nomeDaSala,
+                    idSala = salaId.ToString(),
                     convidar = userAdd,
                     convidado_por = username
                 });
@@ -56,7 +58,7 @@ namespace Cliente
                 if (response["status"].ToString() == "Sucesso")
                 {
                     MessageBox.Show($"O user {userAdd} foi adicionado à sala!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    detalhesSala ds = new detalhesSala(nomeDaSala);
+                    detalhesSala ds = new detalhesSala(salaId, nomeDaSala);
                     this.Hide();
                     ds.Show();
                 }
@@ -69,7 +71,7 @@ namespace Cliente
 
         private void btnVoltar_Click(object sender, EventArgs e)
         {
-            detalhesSala ds = new detalhesSala(nomeDaSala);
+            detalhesSala ds = new detalhesSala(salaId, nomeDaSala);
             this.Hide();
             ds.Show();
         }

@@ -8,6 +8,7 @@ namespace Servidor
 {
     public class Sala
     {
+        public int IdSala { get; set; }
         public string NomeSala { get; set; }
         public string Descricao { get; set; }
         public string DataCriacao { get; set; }

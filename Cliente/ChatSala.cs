@@ -15,11 +15,13 @@ namespace Cliente
     public partial class ChatSala: Form
     {
         public string salaEscolhida;
+        public int salaId;
         //TcpClient cliente = Form1.cliente;
 
-        public ChatSala(string sala)
+        public ChatSala(int idSala, string sala)
         {
             this.salaEscolhida = sala;
+            this.salaId = idSala;
             InitializeComponent();
             labelNomeSala.Text = sala;
         }
@@ -73,7 +75,7 @@ namespace Cliente
 
         private void btnDetalhes_Click(object sender, EventArgs e)
         {
-            detalhesSala ds = new detalhesSala(salaEscolhida);
+            detalhesSala ds = new detalhesSala(salaId, salaEscolhida);
             this.Hide();
             ds.Show();
         }

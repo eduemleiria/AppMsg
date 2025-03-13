@@ -19,7 +19,7 @@ namespace Servidor
         // Dicionario dos usernames users conectados a chats privados
         private static Dictionary<int, List<string>> usersNoChatPrivado = new Dictionary<int, List<string>>();
         // Dicionario com as salas existentes
-        private static Dictionary<string, Sala> salas = LoadSalas();
+        private static Dictionary<int, Sala> salas = LoadSalas();
         // Dicionario com os users existentes
         private static Dictionary<string, string> users = LoadUsers();
         // Dicionario com as mensagens dos users em salas
@@ -31,7 +31,6 @@ namespace Servidor
         static string usersFile = "users.json";
         static string salasFile = "salas.json";
         static string msgsFile = "msgsPorSala.json";
-        static int idC = 0;
 
         static void Main(string[] args)
         {
@@ -115,12 +114,13 @@ namespace Servidor
                         }
                     }else if (request["action"] == "criar_sala")
                     {
+                        int id = buscarUltimoIdSala();
                         string username = request["user"];
                         string nome_Sala = request["nomeSala"];
                         string descricao_Sala = request["descricaoSala"];
                         string data_Hoje = request["dataHoje"];
                         Console.WriteLine($"A tentar criar a sala: {nome_Sala} \n - Com a descrição:{descricao_Sala} \n - No dia: {data_Hoje} \n - Criada pelo(a): {username} \n");
-                        HandleCriarSala(cliente, username, nome_Sala, descricao_Sala, data_Hoje);
+                        HandleCriarSala(cliente, username, id, nome_Sala, descricao_Sala, data_Hoje);
                     }else if (request["action"] == "load_salas")
                     {
                         string username = request["user"];
@@ -128,27 +128,27 @@ namespace Servidor
                         HandleLoadSalas(cliente, username);
                     }else if (request["action"] == "detalhes_da_sala")
                     {
-                        string salaSelec = request["salaSelecionada"];
-                        HandleDetalhesSala(cliente, salaSelec);
+                        string id = request["idSala"];
+                        HandleDetalhesSala(cliente, id);
                     }else if (request["action"] == "adicionar_membro_sala")
                     {
-                        string sala = request["sala"];
+                        string id = request["idSala"];
                         string convidar = request["convidar"];
                         string convidado_por = request["convidado_por"];
-                        HandleConvidarParaSala(cliente, sala, convidar, convidado_por);
+                        HandleConvidarParaSala(cliente, id, convidar, convidado_por);
                     }else if (request["action"] == "remover_user_da_sala")
                     {
-                        string sala = request["sala"];
+                        int id = int.Parse(request["idSala"]);
                         string user_removido = request["user_a_remover"];
                         string removido_por = request["removido_por"];
-                        HandleRemoverUserSala(cliente, sala, user_removido, removido_por);
+                        HandleRemoverUserSala(cliente, id, user_removido, removido_por);
                     }else if (request["action"] == "atualizar_role")
                     {
-                        string sala = request["sala"];
+                        int id = int.Parse(request["idSala"]);
                         string user_a_atualizar = request["user_a_atualizar"];
                         string role_escolhida = request["role_escolhida"];
                         string atualizado_por = request["atualizado_por"];
-                        HandleAtualizarRole(cliente, sala, user_a_atualizar, role_escolhida, atualizado_por);
+                        HandleAtualizarRole(cliente, id, user_a_atualizar, role_escolhida, atualizado_por);
                     }else if (request["action"] == "enviar_msg_sala")
                     {
                         int id = buscarUltimoIdMsg();
@@ -400,15 +400,15 @@ namespace Servidor
 
             if (salas != null)
             {
-                List<string> salasDoUser = new List<string>();
+                Dictionary<int, string> salasDoUser = new Dictionary<int, string>();
                 Console.WriteLine("Salas encontradas:");
                 foreach (var salaEntry in salas)
                 {
                     Sala sala = salaEntry.Value;
                     if (sala.Membros.ContainsKey(username))
                     {
-                        Console.WriteLine($"- {sala.NomeSala}");
-                        salasDoUser.Add(sala.NomeSala);
+                        Console.WriteLine($"- {sala.IdSala} | {sala.NomeSala}");
+                        salasDoUser.Add(sala.IdSala, sala.NomeSala);
                     }
                 }
 
@@ -427,14 +427,15 @@ namespace Servidor
             }
         }
 
-        private static void HandleCriarSala(TcpClient cliente, string username, string nomeSala, string descriSala, string dataHj)
+        private static void HandleCriarSala(TcpClient cliente, string username, int id, string nomeSala, string descriSala, string dataHj)
         {
             var role = "admin";
 
             var salas = LoadSalas();
 
-            salas[nomeSala] = new Sala
+            salas[id] = new Sala
             {
+                IdSala = id,
                 NomeSala = nomeSala,
                 Descricao = descriSala,
                 DataCriacao = dataHj,
@@ -449,16 +450,17 @@ namespace Servidor
             SendResponse(cliente, new { status = "sucesso", message = "Sala criada com sucesso!"});
         }
 
-        private static void HandleDetalhesSala(TcpClient cliente, string salaSeleci)
+        private static void HandleDetalhesSala(TcpClient cliente, string id)
         {
-            Console.WriteLine($"A recolher os dados da sala '{salaSeleci}'");
+            Console.WriteLine($"A recolher os dados da sala '{id}'");
             string jsonString = File.ReadAllText(salasFile);
-            Dictionary<string, Sala> salas = JsonSerializer.Deserialize<Dictionary<string, Sala>>(jsonString);
+            Dictionary<int, Sala> salas = JsonSerializer.Deserialize<Dictionary<int, Sala>>(jsonString);
 
+            var idNovo = int.Parse(id);
 
-            if (salas.ContainsKey(salaSeleci))
+            if (salas.ContainsKey(idNovo))
             {
-                var sala = salas[salaSeleci];
+                var sala = salas[idNovo];
                 List<string> detalhesDaSala = new List<string>();
                 Dictionary<string, string> membrosDaSala = new Dictionary<string, string>();
 
@@ -481,18 +483,20 @@ namespace Servidor
             }
         }
 
-        private static void HandleConvidarParaSala(TcpClient cliente, string salaSeleci, string convidar, string convidado_por)
+        private static void HandleConvidarParaSala(TcpClient cliente, string id, string convidar, string convidado_por)
         {
-            Console.WriteLine($"A validar o convite ao user {convidar} efetuado pelo user {convidado_por} para a sala '{salaSeleci}'");
+            Console.WriteLine($"A validar o convite ao user {convidar} efetuado pelo user {convidado_por} para a sala '{id}'");
             string jsonSala = File.ReadAllText(salasFile);
             string jsonUser = File.ReadAllText(usersFile);
 
-            Dictionary<string, Sala> salas = JsonSerializer.Deserialize<Dictionary<string, Sala>>(jsonSala);
+            Dictionary<int, Sala> salas = JsonSerializer.Deserialize<Dictionary<int, Sala>>(jsonSala);
             Dictionary<string, string> users = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonUser);
 
-            if (salas.ContainsKey(salaSeleci))
+            var idNovo = int.Parse(id);
+
+            if (salas.ContainsKey(idNovo))
             {
-                var sala = salas[salaSeleci];
+                var sala = salas[idNovo];
 
                 if (!sala.NomeSala.Contains(convidar) && users.ContainsKey(convidar))
                 {
@@ -510,16 +514,17 @@ namespace Servidor
             }
         }
 
-        private static void HandleRemoverUserSala(TcpClient cliente, string salaSeleci, string user_removido, string removido_por)
+        private static void HandleRemoverUserSala(TcpClient cliente, int id, string user_removido, string removido_por)
         {
-            Console.WriteLine($"A validar a remoção do user {user_removido} efetuado pelo user {removido_por} para a sala '{salaSeleci}'");
+            Console.WriteLine($"A validar a remoção do user {user_removido} efetuado pelo user {removido_por} para a sala '{id}'");
             string jsonSala = File.ReadAllText(salasFile);
 
-            Dictionary<string, Sala> salas = JsonSerializer.Deserialize<Dictionary<string, Sala>>(jsonSala);
+            Dictionary<int, Sala> salas = JsonSerializer.Deserialize<Dictionary<int, Sala>>(jsonSala);
 
-            if (salas.ContainsKey(salaSeleci))
+            if (salas.ContainsKey(id))
             {
-                var sala = salas[salaSeleci];
+
+                var sala = salas[id];
                 string[] user_remover = user_removido.Split(new string[] { " | " }, StringSplitOptions.None);
                 Console.WriteLine($"User a remover: {user_remover[0]}");
                 
@@ -547,9 +552,9 @@ namespace Servidor
                 {
                     Console.WriteLine("A apagar sala...");
                     sala.Membros.Remove(user_remover[0]);
-                    salas.Remove(salaSeleci);
+                    salas.Remove(id);
                     SaveSalas(salas);
-                    SendResponse(cliente, new { status = "Sucesso", message = $"A sala {salaSeleci} foi apagado com sucesso!" });
+                    SendResponse(cliente, new { status = "Sucesso", message = $"A sala {id} foi apagado com sucesso!" });
                 }
                 else
                 {
@@ -558,16 +563,16 @@ namespace Servidor
             }
         }
 
-        private static void HandleAtualizarRole(TcpClient cliente, string salaSeleci, string user_a_atualizar, string role_escolhida, string atualizado_por)
+        private static void HandleAtualizarRole(TcpClient cliente, int id, string user_a_atualizar, string role_escolhida, string atualizado_por)
         {
-            Console.WriteLine($"A atualizar a role do {user_a_atualizar} para {role_escolhida} pelo {atualizado_por} na sala {salaSeleci}");
+            Console.WriteLine($"A atualizar a role do {user_a_atualizar} para {role_escolhida} pelo {atualizado_por} na sala {id}");
             string jsonSala = File.ReadAllText(salasFile);
 
-            Dictionary<string, Sala> salas = JsonSerializer.Deserialize<Dictionary<string, Sala>>(jsonSala);
+            Dictionary<int, Sala> salas = JsonSerializer.Deserialize<Dictionary<int, Sala>>(jsonSala);
 
-            if (salas.ContainsKey(salaSeleci))
+            if (salas.ContainsKey(id))
             {
-                var sala = salas[salaSeleci];
+                var sala = salas[id];
 
                 string[] user_atualizar = user_a_atualizar.Split(new string[] { " | " }, StringSplitOptions.None);
                 var user = sala.Membros.ContainsKey(user_atualizar[0]);
@@ -618,6 +623,25 @@ namespace Servidor
             }
 
             int lastId = mensagens.Keys.Max();
+            return lastId + 1;
+        }
+
+        private static int buscarUltimoIdSala()
+        {
+            string jsonSalas = File.ReadAllText(salasFile);
+            Dictionary<int, Sala> salas = JsonSerializer.Deserialize<Dictionary<int, Sala>>(jsonSalas);
+
+            if (string.IsNullOrWhiteSpace(jsonSalas))
+            {
+                return 1;
+            }
+
+            if (salas == null || salas.Count == 0)
+            {
+                return 1;
+            }
+
+            int lastId = salas.Keys.Max();
             return lastId + 1;
         }
 
@@ -689,14 +713,14 @@ namespace Servidor
             string json = JsonSerializer.Serialize(users);
             File.WriteAllText(usersFile, json);
         }
-        private static Dictionary<string, Sala> LoadSalas()
+        private static Dictionary<int, Sala> LoadSalas()
         {
-            if (!File.Exists(salasFile)) return new Dictionary<string, Sala>();
+            if (!File.Exists(salasFile)) return new Dictionary<int, Sala>();
             string json = File.ReadAllText(salasFile);
-            return JsonSerializer.Deserialize<Dictionary<string, Sala>>(json) ?? new Dictionary<string, Sala>();
+            return JsonSerializer.Deserialize<Dictionary<int, Sala>>(json) ?? new Dictionary<int, Sala>();
         }
 
-        private static void SaveSalas(Dictionary<string, Sala> salas)
+        private static void SaveSalas(Dictionary<int, Sala> salas)
         {
             string json = JsonSerializer.Serialize(salas, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(salasFile, json);
