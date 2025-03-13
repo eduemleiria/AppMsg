@@ -542,10 +542,13 @@ namespace Servidor
                         sala.Membros.Add(ult_user[1], "admin");
                         SaveSalas(salas);
                     }
-                    else
+
+                    if (sala.Membros.Count() >= 2 &&  !sala.Membros.ContainsValue("admin"))
                     {
-                        Console.WriteLine("ainda existe mais q um user");
+                        Console.WriteLine("faz alguém de admin antes de saires!");
+                        SendResponse(cliente, new { status = "Erro", message = $"Não restam admins na sala se tu saires!" });
                     }
+
                     SaveSalas(salas);
                     SendResponse(cliente, new { status = "Sucesso", message = $"O user {user_removido[0]} foi removido da sala com sucesso!" });
                 }else if (sala.Membros.ContainsKey(user_remover[0]) && sala.Membros.Count() == 1)

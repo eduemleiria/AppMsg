@@ -73,6 +73,10 @@ namespace Cliente
                         btnAdicionar.Visible = true;
                         btnRemover.Visible = true;
                     }
+                    else
+                    {
+                        lbMembros.Enabled = false;
+                    }
                 }
                 else
                 {
@@ -154,11 +158,11 @@ namespace Cliente
 
             if (userSelec != null)
             {
-                labelUserRole.Text = userSelec;
-                labelUserRole.Visible = true;
-                cbRoles.Visible = true;
-                btnAtualizar.Visible = true;
-                Console.WriteLine(labelUserRole.Text);
+                    labelUserRole.Text = userSelec;
+                    labelUserRole.Visible = true;
+                    cbRoles.Visible = true;
+                    btnAtualizar.Visible = true;
+                    Console.WriteLine(labelUserRole.Text);
             }
         }
 
@@ -261,7 +265,7 @@ namespace Cliente
                 }
                 else
                 {
-                    Console.WriteLine("Erro ao saír user da sala.");
+                    MessageBox.Show($"Se tu saires não haveram mais admins na sala! \n Torna alguém admin antes de saires", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
 
             }
