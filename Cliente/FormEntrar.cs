@@ -14,14 +14,16 @@ namespace Cliente
 {
     public partial class FormEntrar : Form
     {
-        public FormEntrar()
+        public string usernameL;
+        public FormEntrar(string username)
         {
             InitializeComponent();
+            this.usernameL = username;
         }
 
         private void btnVoltarAtras_Click(object sender, EventArgs e)
         {
-            MDSettings mdsSettings = new MDSettings();
+            MDSettings mdsSettings = new MDSettings(usernameL);
             this.Hide();
             mdsSettings.Show();
         }
@@ -30,10 +32,10 @@ namespace Cliente
         {
             int porta = Convert.ToInt32(txtPorta.Value);
             string pass = txtPassword.Text;
-            string username = Form1.userLogado;
+
             try
             { 
-                ConversaDireta cd = new ConversaDireta(username, porta, pass);
+                ConversaDireta cd = new ConversaDireta(usernameL, porta, pass);
                 this.Hide();
                 cd.Show();
             }

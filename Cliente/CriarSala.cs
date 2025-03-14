@@ -14,14 +14,15 @@ namespace Cliente
 {
     public partial class CriarSala : Form
     {
-        public CriarSala()
+        public string usernameL;
+        public CriarSala(string username)
         {
             InitializeComponent();
+            this.usernameL = username;
         }
 
         private void btnCriarSala_Click(object sender, EventArgs e)
         {
-            string username = Form1.userLogado;
             string nome_Sala = txtNomeSala.Text;
             string descricao_Sala = txtDescricaoSala.Text;
             DateTime hoje = DateTime.Today;
@@ -34,7 +35,7 @@ namespace Cliente
                 var request = JsonSerializer.Serialize(new
                 {
                     action = "criar_sala",
-                    user = username,
+                    user = usernameL,
                     nomeSala = nome_Sala,
                     descricaoSala = descricao_Sala,
                     dataHoje = hoje.ToString("dd/MM/yyyy")
@@ -53,7 +54,7 @@ namespace Cliente
                 {
                     MessageBox.Show("A sala foi criada com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                    ListaSalas ls = new ListaSalas();
+                    ListaSalas ls = new ListaSalas(usernameL);
                     this.Hide();
                     ls.Show();
                 }
@@ -73,7 +74,7 @@ namespace Cliente
 
         private void btnVoltar_Click(object sender, EventArgs e)
         {
-            ListaSalas ls = new ListaSalas();
+            ListaSalas ls = new ListaSalas(usernameL);
             this.Hide();
             ls.Show();
         }

@@ -18,7 +18,7 @@ namespace Cliente
 {
     public partial class ConversaDireta : Form
     {
-        private string userLogado;
+        private string usernameL;
         private string passwordCriada;
         private int porta;
         private TcpClient client;
@@ -28,7 +28,7 @@ namespace Cliente
         public ConversaDireta(string username, int porta, string password)
         {
             InitializeComponent();
-            this.userLogado = username;
+            this.usernameL = username;
             this.passwordCriada = password;
             this.porta = porta;
             this.buffer = new byte[1024];
@@ -46,7 +46,7 @@ namespace Cliente
                 {
                     action = "entrar_chat_privado",
                     password = passwordCriada,
-                    user = userLogado
+                    user = usernameL
                 });
 
                 byte[] data = Encoding.UTF8.GetBytes(request);
@@ -63,7 +63,7 @@ namespace Cliente
                 {
                     Console.WriteLine("estou dentro do verif de 2 pessoas dentro do chat");
                     this.Close();
-                    MDSettings mds = new MDSettings();
+                    MDSettings mds = new MDSettings(usernameL);
                     mds.Show();
                     
                 }
@@ -76,7 +76,7 @@ namespace Cliente
                 Console.WriteLine($"Erro ao conectar ao chat: {ex.Message}");
                 MessageBox.Show($"Erro ao conectar ao chat: {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.Close();
-                MDSettings mds = new MDSettings();
+                MDSettings mds = new MDSettings(usernameL);
                 mds.Show();
             }
         }
@@ -131,7 +131,7 @@ namespace Cliente
                 {
                     action = "msg",
                     port = porta.ToString(),
-                    user = userLogado,
+                    user = usernameL,
                     mensagem_enviada = msg
                 });
 
@@ -162,7 +162,7 @@ namespace Cliente
             {
                 action = "sair_chat_privado",
                 port = porta.ToString(),
-                user = userLogado
+                user = usernameL
             });
 
             Console.WriteLine($"Request de saida no lado do cliente: {request}");
@@ -171,7 +171,7 @@ namespace Cliente
             stream.Write(data, 0, data.Length);
             stream.Flush();
 
-            ListaSalas listaSalas = new ListaSalas();
+            ListaSalas listaSalas = new ListaSalas(usernameL);
             this.Hide();
             listaSalas.Show();
         }

@@ -16,15 +16,16 @@ namespace Cliente
     {
         public string salaEscolhida;
         public int salaId;
-        //TcpClient cliente = Form1.cliente;
+        public string usernameL;
 
-        public ChatSala(int idSala, string sala)
+        public ChatSala(int idSala, string sala, string username)
         {
             this.salaEscolhida = sala;
             this.salaId = idSala;
             InitializeComponent();
             Task.Run(() => LoadMensagens());
             labelNomeSala.Text = sala;
+            this.usernameL = username;
         }
 
         private void LoadMensagens()
@@ -45,7 +46,6 @@ namespace Cliente
 
         private void btnEnviarMsg_Click(object sender, EventArgs e)
         {
-            string username = Form1.userLogado;
             string msg = txtMsg.Text;
             DateTime dataHoraHj = DateTime.Now;
 
@@ -58,7 +58,7 @@ namespace Cliente
                 {
                     action = "enviar_msg_sala",
                     idSala = salaId.ToString(),
-                    user = username,
+                    user = usernameL,
                     dataHora = dataHoraHj.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss"),
                     mensagem = msg
                 });
@@ -92,14 +92,14 @@ namespace Cliente
 
         private void btnDetalhes_Click(object sender, EventArgs e)
         {
-            detalhesSala ds = new detalhesSala(salaId, salaEscolhida);
+            detalhesSala ds = new detalhesSala(salaId, salaEscolhida, usernameL);
             this.Hide();
             ds.Show();
         }
 
         private void btnVoltar_Click(object sender, EventArgs e)
         {
-            ListaSalas ls = new ListaSalas();
+            ListaSalas ls = new ListaSalas(usernameL);
             this.Hide();
             ls.Show();
         }

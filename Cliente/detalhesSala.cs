@@ -17,16 +17,18 @@ namespace Cliente
     {
         public string nomeSala;
         public int salaId;
-        string username = Form1.userLogado;
+        public string usernameL;
         public string userSelec;
         TcpClient cliente = new TcpClient("127.0.0.1", 3700);
 
-        public detalhesSala(int idSala, string sala)
+        public detalhesSala(int idSala, string sala, string username)
         {
             InitializeComponent();
             this.nomeSala = sala;
             this.salaId = idSala;
+            this.usernameL = username;
             LoadDadosSala();
+            
         }
 
         public void LoadDadosSala()
@@ -68,7 +70,7 @@ namespace Cliente
                         lbMembros.Items.Add(string.Format("{0} | {1}", membro.Key, membro.Value));
                     }
 
-                    if (membrosDaSala.ContainsKey(username) && membrosDaSala[username].Contains("admin"))
+                    if (membrosDaSala.ContainsKey(usernameL) && membrosDaSala[usernameL].Contains("admin"))
                     {
                         btnAdicionar.Visible = true;
                         btnRemover.Visible = true;
@@ -91,7 +93,7 @@ namespace Cliente
 
         private void btnAdicionar_Click(object sender, EventArgs e)
         {
-            AdicionarMembro am = new AdicionarMembro(salaId, nomeSala);
+            AdicionarMembro am = new AdicionarMembro(salaId, nomeSala, usernameL);
             this.Hide();
             am.Show();
         }
@@ -114,7 +116,7 @@ namespace Cliente
                     action = "remover_user_da_sala",
                     idSala = salaId.ToString(),
                     user_a_remover = user_remover,
-                    removido_por = username
+                    removido_por = usernameL
                 });
 
                 Console.WriteLine($"Request de remoção do user: {request}");
@@ -147,7 +149,7 @@ namespace Cliente
 
         private void btnVoltar_Click(object sender, EventArgs e)
         {
-            ChatSala cs = new ChatSala(salaId, nomeSala);
+            ChatSala cs = new ChatSala(salaId, nomeSala, usernameL);
             this.Hide();
             cs.Show();
         }
@@ -182,7 +184,7 @@ namespace Cliente
                     idSala = salaId.ToString(),
                     user_a_atualizar = user_atualizar,
                     role_escolhida = role_selecionada,
-                    atualizado_por = username
+                    atualizado_por = usernameL
                 });
 
                 Console.WriteLine($"Request de atualização do user: {request}");
@@ -199,13 +201,13 @@ namespace Cliente
                 if (response["message"].ToString().Contains("para admin!"))
                 {
                     MessageBox.Show($"O user {userSelec} foi promovido para admin!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    detalhesSala ds = new detalhesSala(salaId, nomeSala);
+                    detalhesSala ds = new detalhesSala(salaId, nomeSala, usernameL);
                     this.Hide();
                     ds.Show();
                 }else if (response["message"].ToString().Contains("para user!"))
                 {
                     MessageBox.Show($"O user {userSelec} foi despromovido para user!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    detalhesSala ds = new detalhesSala(salaId,nomeSala);
+                    detalhesSala ds = new detalhesSala(salaId,nomeSala, usernameL);
                     this.Hide();
                     ds.Show();
                 }
@@ -233,8 +235,8 @@ namespace Cliente
                 {
                     action = "remover_user_da_sala",
                     idSala = salaId.ToString(),
-                    user_a_remover = username,
-                    removido_por = username
+                    user_a_remover = userSelec,
+                    removido_por = usernameL
                 });
 
                 Console.WriteLine($"Request de remoção do user: {request}");
@@ -250,16 +252,16 @@ namespace Cliente
 
                 if (jsonResponse.Contains("sucesso") && jsonResponse.Contains("removido"))
                 {
-                    lbMembros.Items.Remove(username);
+                    lbMembros.Items.Remove(usernameL);
                     MessageBox.Show($"Saíste da sala com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    ListaSalas ls = new ListaSalas();
+                    ListaSalas ls = new ListaSalas(usernameL);
                     this.Hide();
                     ls.Show();
                 }else if(jsonResponse.Contains("sucesso") && jsonResponse.Contains("apagado"))
                 {
-                    lbMembros.Items.Remove(username);
+                    lbMembros.Items.Remove(usernameL);
                     MessageBox.Show($"A sala {nomeSala} foi apagada com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    ListaSalas ls = new ListaSalas();
+                    ListaSalas ls = new ListaSalas(usernameL);
                     this.Hide();
                     ls.Show();
                 }

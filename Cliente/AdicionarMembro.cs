@@ -17,10 +17,11 @@ namespace Cliente
     {
         public string nomeDaSala;
         public int salaId;
-        public string username = Form1.userLogado;
+        public string usernameL;
 
-        public AdicionarMembro(int idSala, string nomeSala)
+        public AdicionarMembro(int idSala, string nomeSala, string username)
         {
+            this.usernameL = username;
             this.nomeDaSala = nomeSala;
             this.salaId = idSala;
             InitializeComponent();
@@ -41,7 +42,7 @@ namespace Cliente
                     action = "adicionar_membro_sala",
                     idSala = salaId.ToString(),
                     convidar = userAdd,
-                    convidado_por = username
+                    convidado_por = usernameL
                 });
 
                 Console.WriteLine($"Request enviada para o servidor: {request}");
@@ -58,7 +59,7 @@ namespace Cliente
                 if (response["status"].ToString() == "Sucesso")
                 {
                     MessageBox.Show($"O user {userAdd} foi adicionado à sala!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    detalhesSala ds = new detalhesSala(salaId, nomeDaSala);
+                    detalhesSala ds = new detalhesSala(salaId, nomeDaSala, usernameL);
                     this.Hide();
                     ds.Show();
                 }
@@ -71,7 +72,7 @@ namespace Cliente
 
         private void btnVoltar_Click(object sender, EventArgs e)
         {
-            detalhesSala ds = new detalhesSala(salaId, nomeDaSala);
+            detalhesSala ds = new detalhesSala(salaId, nomeDaSala, usernameL);
             this.Hide();
             ds.Show();
         }

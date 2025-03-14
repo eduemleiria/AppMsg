@@ -20,14 +20,17 @@ namespace Cliente
         private TcpClient cliente;
         private NetworkStream stream;
 
-        public FormCriar()
+        private string usernameL;
+
+        public FormCriar(string username)
         {
             InitializeComponent();
+            this.usernameL = username;
         }
 
         private void btnVoltarAtras_Click(object sender, EventArgs e)
         {
-            MDSettings mdsSettings = new MDSettings();
+            MDSettings mdsSettings = new MDSettings(usernameL);
             this.Hide();
             mdsSettings.Show();
         }
@@ -36,7 +39,6 @@ namespace Cliente
         {
             int porta = Convert.ToInt32(txtDefPorta.Value);
             string pass = txtPass.Text;
-            string username = Form1.userLogado;
 
             try
             {
@@ -48,7 +50,7 @@ namespace Cliente
                     action = "criar_chat_privado",
                     port = porta.ToString(),
                     password = pass.ToString(),
-                    user = username
+                    user = usernameL
                 });
 
                 Console.WriteLine("Request de criação: " + request);
@@ -64,14 +66,14 @@ namespace Cliente
                 {
                     MessageBox.Show("O chat privado foi criado com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                    ConversaDireta cd = new ConversaDireta(username, porta, pass);
+                    ConversaDireta cd = new ConversaDireta(usernameL, porta, pass);
                     this.Hide();
                     cd.Show();
                 }
                 else
                 {
                     MessageBox.Show("Erro ao criar o chat privado.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    MDSettings mds = new MDSettings();
+                    MDSettings mds = new MDSettings(usernameL);
                     this.Hide();
                     mds.Show();
                 }

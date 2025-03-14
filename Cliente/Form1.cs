@@ -13,7 +13,6 @@ namespace Cliente
     {
         public static TcpClient cliente;
         private NetworkStream stream;
-        public static string userLogado = string.Empty;
 
         public Form1()
         {
@@ -54,9 +53,8 @@ namespace Cliente
             {
                 if (serverResponse["status"] == "sucesso")
                 {
-                    userLogado = username;
                     MessageBox.Show("Login realizado com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    ListaSalas listaSalas = new ListaSalas();
+                    ListaSalas listaSalas = new ListaSalas(username);
                     this.Hide();
                     listaSalas.Show();
                 }

@@ -17,11 +17,13 @@ namespace Cliente
     public partial class ListaSalas : Form
     {
         public string salaSelec;
+        public string usernameL;
         private List<KeyValuePair<int, string>> listaSalas = new List<KeyValuePair<int, string>>();
 
-        public ListaSalas()
+        public ListaSalas(string username)
         {
             InitializeComponent();
+            this.usernameL = username;
             LoadListaSalas();
         }
 
@@ -29,12 +31,11 @@ namespace Cliente
         {
             TcpClient client = new TcpClient("127.0.0.1", 3700);
             NetworkStream stream = client.GetStream();
-            string username = Form1.userLogado;
 
             var request = JsonSerializer.Serialize(new
             {
                 action = "load_salas",
-                user = username
+                user = usernameL
             });
 
             Console.WriteLine("Request de load das salas: " + request);
@@ -80,18 +81,17 @@ namespace Cliente
                 string salaSelecionada = salaEscolhida.Value;
 
                 this.salaSelec = salaSelecionada;
-                string username = Form1.userLogado;
 
                 var request = JsonSerializer.Serialize(new
                 {
                     action = "chat_da_sala",
                     salaSelecionada = salaSelec,
-                    user = username
+                    user = usernameL
                 });
 
                 Console.WriteLine($"Request de dados da sala: {request}");
 
-                ChatSala cs = new ChatSala(salaId, salaSelecionada);
+                ChatSala cs = new ChatSala(salaId, salaSelecionada, usernameL);
                 this.Hide();
                 cs.Show();
             }
@@ -106,14 +106,14 @@ namespace Cliente
 
         private void iniciarConversaDiretaToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MDSettings mds = new MDSettings();
+            MDSettings mds = new MDSettings(usernameL);
             this.Hide();
             mds.Show();
         }
 
         private void criarUmaSalaToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            CriarSala cs = new CriarSala();
+            CriarSala cs = new CriarSala(usernameL);
             this.Hide();
             cs.Show();
         }
