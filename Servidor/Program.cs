@@ -527,10 +527,12 @@ namespace Servidor
                 var sala = salas[id];
                 string[] user_remover = user_removido.Split(new string[] { " | " }, StringSplitOptions.None);
                 Console.WriteLine($"User a remover: {user_remover[0]}");
-                
+
+
                 if (sala.Membros.ContainsKey(user_remover[0]) && sala.Membros.Count() >= 2)
-                {
+                {   
                     sala.Membros.Remove(user_remover[0]);
+
                     if (sala.Membros.Count() == 1)
                     {
                         var ultimo_user = sala.Membros.Last();
@@ -542,10 +544,11 @@ namespace Servidor
                         sala.Membros.Add(ult_user[1], "admin");
                         SaveSalas(salas);
                     }
-
-                    if (sala.Membros.Count() >= 2 &&  !sala.Membros.ContainsValue("admin"))
+                    
+                    if (sala.Membros.Count() >= 2 && !sala.Membros.ContainsValue("admin"))
                     {
                         Console.WriteLine("faz alguém de admin antes de saires!");
+                        sala.Membros.Add(user_remover[0], "admin");
                         SendResponse(cliente, new { status = "Erro", message = $"Não restam admins na sala se tu saires!" });
                     }
 
