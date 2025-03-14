@@ -53,7 +53,7 @@
             this.btnEntrar.Location = new System.Drawing.Point(72, 167);
             this.btnEntrar.Name = "btnEntrar";
             this.btnEntrar.Size = new System.Drawing.Size(93, 36);
-            this.btnEntrar.TabIndex = 2;
+            this.btnEntrar.TabIndex = 4;
             this.btnEntrar.Text = "Entrar";
             this.btnEntrar.UseVisualStyleBackColor = true;
             this.btnEntrar.Click += new System.EventHandler(this.btnEntrar_Click);
@@ -84,7 +84,7 @@
             this.txtPassword.Location = new System.Drawing.Point(102, 120);
             this.txtPassword.Name = "txtPassword";
             this.txtPassword.Size = new System.Drawing.Size(100, 24);
-            this.txtPassword.TabIndex = 4;
+            this.txtPassword.TabIndex = 3;
             this.txtPassword.UseSystemPasswordChar = true;
             // 
             // btnVoltarAtras
@@ -92,7 +92,7 @@
             this.btnVoltarAtras.Location = new System.Drawing.Point(12, 12);
             this.btnVoltarAtras.Name = "btnVoltarAtras";
             this.btnVoltarAtras.Size = new System.Drawing.Size(75, 23);
-            this.btnVoltarAtras.TabIndex = 6;
+            this.btnVoltarAtras.TabIndex = 1;
             this.btnVoltarAtras.Text = "Voltar";
             this.btnVoltarAtras.UseVisualStyleBackColor = true;
             this.btnVoltarAtras.Click += new System.EventHandler(this.btnVoltarAtras_Click);
@@ -107,7 +107,7 @@
             0});
             this.txtPorta.Name = "txtPorta";
             this.txtPorta.Size = new System.Drawing.Size(100, 22);
-            this.txtPorta.TabIndex = 7;
+            this.txtPorta.TabIndex = 2;
             // 
             // FormEntrar
             // 

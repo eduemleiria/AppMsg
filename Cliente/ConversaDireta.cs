@@ -99,9 +99,18 @@ namespace Cliente
                         string formattedMessage2 = receivedData["mensagem"];
                         Console.WriteLine("Mensagem formatada: " + formattedMessage2);
                         BeginInvoke(new Action(() => lbMsgsD.Items.Add(formattedMessage2 + Environment.NewLine)));
-                    }else if (receivedData.ContainsKey("notificacao") && InvokeRequired == true)
+                    }
+                    else if (receivedData.ContainsKey("notificacao"))
                     {
                         string notificationText = receivedData["notificacao"];
+
+                        if (notificationText == "Chat vazio..." && lblAfalarCom.Text.Contains("Estás a falar com"))
+                        {
+                            return;
+                        }
+
+                        Console.WriteLine($"Updating lblAfalarCom.Text to: {notificationText}");
+                        Task.Delay(200).Wait();
                         BeginInvoke(new Action(() => lblAfalarCom.Text = notificationText));
                     }
                 }

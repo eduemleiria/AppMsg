@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Servidor
 {
@@ -18,6 +19,7 @@ namespace Servidor
         private static Dictionary<int, TcpListener> ListenersDeChatsPrivados = new Dictionary<int, TcpListener>();
         // Dicionario dos usernames users conectados a chats privados
         private static Dictionary<int, List<string>> usersNoChatPrivado = new Dictionary<int, List<string>>();
+
         // Dicionario com as salas existentes
         private static Dictionary<int, Sala> salas = LoadSalas();
         // Dicionario com os users existentes
@@ -152,12 +154,15 @@ namespace Servidor
                     }else if (request["action"] == "enviar_msg_sala")
                     {
                         int id = buscarUltimoIdMsg();
-                        Console.WriteLine(id);
-                        string sala = request["sala"];
+                        string idSala = request["idSala"];
                         string emissor = request["user"];
                         string dataHora = request["dataHora"];
                         string msg = request["mensagem"];
-                        HandleEnviarMsg(cliente, sala, id, emissor, dataHora, msg);
+                        HandleEnviarMsg(cliente, idSala, id, emissor, dataHora, msg);
+                    }else if (request["action"] == "load_msgs_sala")
+                    {
+                        string idSala = request["idSala"];
+                        HandleLoadMsgsSala(cliente, idSala);
                     }
                 }
             }
@@ -651,16 +656,23 @@ namespace Servidor
             return lastId + 1;
         }
 
-
-        private static void HandleEnviarMsg(TcpClient cliente, string salaSeleci, int id, string emissor, string dataHoraHj, string msg)
+        private static void HandleLoadMsgsSala(TcpClient cliente, string idSala)
         {
-            Console.WriteLine($"{id} A processar a mensagem '{msg}' enviada por '{emissor}' na sala '{salaSeleci} ás {dataHoraHj}'");
+            
+        }
+
+
+        private static void HandleEnviarMsg(TcpClient cliente, string idSala, int id, string emissor, string dataHoraHj, string msg)
+        {
+            Console.WriteLine($"{id} A processar a mensagem '{msg}' enviada por '{emissor}' na sala '{idSala} ás {dataHoraHj}'");
+
+            var idSalaNovo = int.Parse(idSala);
 
             var mensagens = LoadMensagens();
             mensagens[id] = new Mensagem
             {
                 IdMsg = id,
-                NomeSala = salaSeleci,
+                IdSala = idSalaNovo,
                 User = emissor,
                 DataEnvio = dataHoraHj,
                 Msg = msg
@@ -668,7 +680,7 @@ namespace Servidor
 
             SaveMensagens(mensagens);
             Console.WriteLine("A mensagem foi guardada com sucesso!");
-            SendResponse(cliente, new { status = "sucesso", sala = $"{salaSeleci}", emissor = $"{emissor}", mensagem = $"{msg}" });
+            SendResponse(cliente, new { status = "sucesso", idDaSala = $"{idSalaNovo}", emissor = $"{emissor}", mensagem = $"{msg}" });
         }
 
 

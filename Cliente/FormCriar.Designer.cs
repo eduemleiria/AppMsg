@@ -45,7 +45,7 @@
             this.btnVoltarAtras.Location = new System.Drawing.Point(12, 12);
             this.btnVoltarAtras.Name = "btnVoltarAtras";
             this.btnVoltarAtras.Size = new System.Drawing.Size(75, 23);
-            this.btnVoltarAtras.TabIndex = 13;
+            this.btnVoltarAtras.TabIndex = 1;
             this.btnVoltarAtras.Text = "Voltar";
             this.btnVoltarAtras.UseVisualStyleBackColor = true;
             this.btnVoltarAtras.Click += new System.EventHandler(this.btnVoltarAtras_Click);
@@ -66,7 +66,7 @@
             this.txtPass.Location = new System.Drawing.Point(102, 120);
             this.txtPass.Name = "txtPass";
             this.txtPass.Size = new System.Drawing.Size(100, 24);
-            this.txtPass.TabIndex = 11;
+            this.txtPass.TabIndex = 3;
             this.txtPass.UseSystemPasswordChar = true;
             // 
             // label2
@@ -84,7 +84,7 @@
             this.btnCriar.Location = new System.Drawing.Point(76, 228);
             this.btnCriar.Name = "btnCriar";
             this.btnCriar.Size = new System.Drawing.Size(93, 36);
-            this.btnCriar.TabIndex = 9;
+            this.btnCriar.TabIndex = 5;
             this.btnCriar.Text = "Criar";
             this.btnCriar.UseVisualStyleBackColor = true;
             this.btnCriar.Click += new System.EventHandler(this.btnCriar_Click);
@@ -116,7 +116,7 @@
             this.txtConfPass.Location = new System.Drawing.Point(102, 173);
             this.txtConfPass.Name = "txtConfPass";
             this.txtConfPass.Size = new System.Drawing.Size(100, 24);
-            this.txtConfPass.TabIndex = 14;
+            this.txtConfPass.TabIndex = 4;
             this.txtConfPass.UseSystemPasswordChar = true;
             // 
             // txtDefPorta
@@ -129,7 +129,7 @@
             0});
             this.txtDefPorta.Name = "txtDefPorta";
             this.txtDefPorta.Size = new System.Drawing.Size(100, 22);
-            this.txtDefPorta.TabIndex = 16;
+            this.txtDefPorta.TabIndex = 2;
             // 
             // FormCriar
             // 

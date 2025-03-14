@@ -23,7 +23,24 @@ namespace Cliente
             this.salaEscolhida = sala;
             this.salaId = idSala;
             InitializeComponent();
+            Task.Run(() => LoadMensagens());
             labelNomeSala.Text = sala;
+        }
+
+        private void LoadMensagens()
+        {
+            TcpClient client = new TcpClient("127.0.0.1", 3700);
+            NetworkStream stream = client.GetStream();
+
+            var request = JsonSerializer.Serialize(new
+            {
+                action = "load_msgs_sala",
+                idSala = salaId.ToString()
+            });
+
+            Console.WriteLine($"Request de load das mensagens da sala com o id {salaId}: " + request);
+            byte[] data = Encoding.UTF8.GetBytes(request);
+            stream.Write(data, 0, data.Length);
         }
 
         private void btnEnviarMsg_Click(object sender, EventArgs e)
@@ -40,7 +57,7 @@ namespace Cliente
                 var request = JsonSerializer.Serialize(new
                 {
                     action = "enviar_msg_sala",
-                    sala = salaEscolhida,
+                    idSala = salaId.ToString(),
                     user = username,
                     dataHora = dataHoraHj.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss"),
                     mensagem = msg
