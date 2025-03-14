@@ -19,7 +19,8 @@ namespace Servidor
         private static Dictionary<int, TcpListener> ListenersDeChatsPrivados = new Dictionary<int, TcpListener>();
         // Dicionario dos usernames users conectados a chats privados
         private static Dictionary<int, List<string>> usersNoChatPrivado = new Dictionary<int, List<string>>();
-
+        // Dicionario os users conectados a salas
+        private static Dictionary<string, List<TcpClient>> usersNaSala = new Dictionary<string, List<TcpClient>>();
         // Dicionario com as salas existentes
         private static Dictionary<int, Sala> salas = LoadSalas();
         // Dicionario com os users existentes
@@ -163,6 +164,11 @@ namespace Servidor
                     {
                         string idSala = request["idSala"];
                         HandleLoadMsgsSala(cliente, idSala);
+                    }else if (request["action"] == "conectar_sala")
+                    {
+                        string idSala = request["idSala"];
+                        string username = request["user"];
+                        HandleConectarSala(cliente, idSala, username);
                     }
                 }
             }
@@ -658,9 +664,48 @@ namespace Servidor
 
         private static void HandleLoadMsgsSala(TcpClient cliente, string idSala)
         {
-            
+            int idSalaNovo = int.Parse(idSala);
+            string jsonString = File.ReadAllText(msgsFile);
+            Dictionary<string, Mensagem> mensagens = JsonSerializer.Deserialize<Dictionary<string, Mensagem>>(jsonString);
+
+            Dictionary<string, List<string>> msgsUser = new Dictionary<string, List<string>>();
+
+            foreach (var mensagem in mensagens)
+            {
+                Mensagem msg = mensagem.Value;
+
+                if (msg.IdSala == idSalaNovo)
+                { 
+                    if (!msgsUser.ContainsKey(msg.User))
+                    {
+                        msgsUser[msg.User] = new List<string>();
+                    }
+
+                    msgsUser[msg.User].Add(msg.Msg);
+                }
+            }
+
+            if (msgsUser.Count > 0)
+            {
+                SendResponse(cliente, new { status = "sucesso", msgs = msgsUser });
+            }
+            else
+            {
+                SendResponse(cliente, new { status = "erro", message = $"Não foram encontradas mensagens nesta sala." });
+            }
         }
 
+        private static void HandleConectarSala(TcpClient cliente, string idSala, string username)
+        {
+            if (!usersNaSala.ContainsKey(idSala))
+            {
+                usersNaSala[idSala] = new List<TcpClient>();
+            }
+
+            usersNaSala[idSala].Add(cliente);
+
+            Console.WriteLine($"O user {username} entrou na sala com o id {idSala}");
+        }
 
         private static void HandleEnviarMsg(TcpClient cliente, string idSala, int id, string emissor, string dataHoraHj, string msg)
         {
@@ -682,8 +727,6 @@ namespace Servidor
             Console.WriteLine("A mensagem foi guardada com sucesso!");
             SendResponse(cliente, new { status = "sucesso", idDaSala = $"{idSalaNovo}", emissor = $"{emissor}", mensagem = $"{msg}" });
         }
-
-
 
         private static void HandleRegister(TcpClient client, Dictionary<string, string> request)
         {
