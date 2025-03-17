@@ -515,7 +515,7 @@ namespace Servidor
                     sala.Membros.Add(convidar, role);
                     SaveSalas(salas);
                     SendResponse(cliente, new { status = "Sucesso", message = $"O user {convidar} foi adicionado à sala com sucesso!" });
-
+                    BroadcastMessage($"O user {convidar} foi adicionado pelo {convidado_por}", usersNaSala[id]);
                 }
                 else
                 {
@@ -543,6 +543,7 @@ namespace Servidor
                 if (sala.Membros.ContainsKey(user_remover[0]) && sala.Membros.Count() >= 2)
                 {   
                     sala.Membros.Remove(user_remover[0]);
+                    BroadcastMessage($"O user {user_remover[0]} saiu da sala!", usersNaSala[id.ToString()]);
 
                     if (sala.Membros.Count() == 1)
                     {
@@ -554,6 +555,7 @@ namespace Servidor
                         sala.Membros.Remove(ult_user[1]);
                         sala.Membros.Add(ult_user[1], "admin");
                         SaveSalas(salas);
+                        BroadcastMessage($"O user {ult_user[1]} foi promovido a admin da sala!", usersNaSala[id.ToString()]);
                     }
                     
                     if (sala.Membros.Count() >= 2 && !sala.Membros.ContainsValue("admin"))
@@ -601,7 +603,8 @@ namespace Servidor
                         sala.Membros.Remove(user_atualizar[0]);
                         sala.Membros.Add(user_atualizar[0], "admin");
                         SaveSalas(salas);
-                        Console.WriteLine($"User atualizado para admin: {user}");
+                        Console.WriteLine($"User atualizado para admin: {user_atualizar[0]}");
+                        BroadcastMessage($"O user {user_atualizar[0]} foi promovido a admin! ", usersNaSala[id.ToString()]);
                         SendResponse(cliente, new { status = "Sucesso", message = $"O user {user_atualizar[0]} foi atualizado com sucesso para admin!" });
                     }
                     else if(role_escolhida == "user" && user_atualizar[1] == "admin")
@@ -609,7 +612,8 @@ namespace Servidor
                         sala.Membros.Remove(user_atualizar[0]);
                         sala.Membros.Add(user_atualizar[0], "user");
                         SaveSalas(salas);
-                        Console.WriteLine($"User atualizado para user: {user}");
+                        Console.WriteLine($"User atualizado para user: {user_atualizar[0]}");
+                        BroadcastMessage($"O user {user_atualizar[0]} foi despromovido para user! ", usersNaSala[id.ToString()]);
                         SendResponse(cliente, new { status = "Sucesso", message = $"O user {user_atualizar[0]} foi atualizado com sucesso para user!" });
                     }
                     else
