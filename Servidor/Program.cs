@@ -169,6 +169,10 @@ namespace Servidor
                         string idSala = request["idSala"];
                         string username = request["user"];
                         HandleConectarSala(cliente, idSala, username);
+                    }else if (request["action"] == "users_da_sala")
+                    {
+                        string idSala = request["idSala"];
+                        HandleCarregarUsersSala(cliente, idSala);
                     }
                 }
             }
@@ -733,6 +737,16 @@ namespace Servidor
             Console.WriteLine("A mensagem foi guardada com sucesso!");
             SendResponse(cliente, new { status = "sucesso", idDaSala = $"{idSalaNovo}", emissor = $"{emissor}", mensagem = $"{msg}" });
             BroadcastMessage($"{emissor}: {msg}", usersNaSala[idSala.ToString()]);
+        }
+
+        private static void HandleCarregarUsersSala(TcpClient cliente, string idSala)
+        {
+            int idSalaNovo = int.Parse(idSala);
+            string jsonSala = File.ReadAllText(salasFile);
+
+            Dictionary<int, Sala> salas = JsonSerializer.Deserialize<Dictionary<int, Sala>>(jsonSala);
+
+            
         }
 
         private static void HandleRegister(TcpClient client, Dictionary<string, string> request)
