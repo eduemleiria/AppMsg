@@ -705,6 +705,8 @@ namespace Servidor
             usersNaSala[idSala].Add(cliente);
 
             Console.WriteLine($"O user {username} entrou na sala com o id {idSala}");
+
+            SendResponse(cliente, new { status = "sucesso", message = $"O user {username} conectou-se há sala com sucesso!" });
         }
 
         private static void HandleEnviarMsg(TcpClient cliente, string idSala, int id, string emissor, string dataHoraHj, string msg)
@@ -726,6 +728,7 @@ namespace Servidor
             SaveMensagens(mensagens);
             Console.WriteLine("A mensagem foi guardada com sucesso!");
             SendResponse(cliente, new { status = "sucesso", idDaSala = $"{idSalaNovo}", emissor = $"{emissor}", mensagem = $"{msg}" });
+            BroadcastMessage($"{emissor}: {msg}", usersNaSala[idSala.ToString()]);
         }
 
         private static void HandleRegister(TcpClient client, Dictionary<string, string> request)

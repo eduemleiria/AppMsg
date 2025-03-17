@@ -235,7 +235,7 @@ namespace Cliente
                 {
                     action = "remover_user_da_sala",
                     idSala = salaId.ToString(),
-                    user_a_remover = userSelec,
+                    user_a_remover = usernameL,
                     removido_por = usernameL
                 });
 

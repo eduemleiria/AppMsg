@@ -6,6 +6,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -18,6 +19,8 @@ namespace Cliente
         public string salaEscolhida;
         public int salaId;
         public string usernameL;
+        private TcpClient client;
+        private NetworkStream stream;
 
         public ChatSala(int idSala, string sala, string username)
         {
@@ -33,8 +36,8 @@ namespace Cliente
 
         private void conectarSala()
         {
-            TcpClient client = new TcpClient("127.0.0.1", 3700);
-            NetworkStream stream = client.GetStream();
+            client = new TcpClient("127.0.0.1", 3700);
+            stream = client.GetStream();
 
             var request = JsonSerializer.Serialize(new
             {
@@ -47,6 +50,19 @@ namespace Cliente
             byte[] data = Encoding.UTF8.GetBytes(request);
             stream.Write(data, 0, data.Length);
             stream.Flush();
+
+            byte[] buffer = new byte[1024];
+            int bytesRead = stream.Read(buffer, 0, buffer.Length);
+            string jsonResponse = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+            Console.WriteLine($"Resposta do server: {jsonResponse}");
+
+            var response = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonResponse);
+
+            if (response["status"].ToString() == "sucesso" && response.ContainsKey("message"))
+            {
+                Console.WriteLine("O user conectou-se com sucesso, a começar a ouvir por mensagens.");
+                Task.Run(() => OuvirMsgs());
+            }
         }
 
         private void LoadMensagens()
@@ -101,6 +117,35 @@ namespace Cliente
             }
         }
 
+        private void OuvirMsgs()
+        {
+            while (true)
+            {
+                try
+                {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                    if (bytesRead == 0) break;
+
+                    string jsonMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                    Console.WriteLine($"Mensagem recebida: {jsonMessage}");
+                    var receivedData = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonMessage);
+
+                    if (receivedData.ContainsKey("mensagem") && InvokeRequired == true)
+                    {
+                        string msgFormatada = receivedData["mensagem"];
+                        Console.WriteLine("Mensagem formatada: " + msgFormatada);
+                        BeginInvoke(new Action(() => lbMsgs.Items.Add(msgFormatada + Environment.NewLine)));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Erro ao receber mensagem: {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+                }
+            }
+        }
+
         private void btnEnviarMsg_Click(object sender, EventArgs e)
         {
             string msg = txtMsg.Text;
@@ -108,7 +153,6 @@ namespace Cliente
 
             TcpClient client = new TcpClient("127.0.0.1", 3700);
             NetworkStream stream = client.GetStream();
-
             try
             {
                 var request = JsonSerializer.Serialize(new

@@ -82,15 +82,6 @@ namespace Cliente
 
                 this.salaSelec = salaSelecionada;
 
-                /*var request = JsonSerializer.Serialize(new
-                {
-                    action = "chat_da_sala",
-                    salaSelecionada = salaSelec,
-                    user = usernameL
-                });
-
-                Console.WriteLine($"Request de dados da sala: {request}");*/
-
                 ChatSala cs = new ChatSala(salaId, salaSelecionada, usernameL);
                 this.Hide();
                 cs.Show();
