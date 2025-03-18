@@ -34,6 +34,8 @@
             this.txtMsg = new System.Windows.Forms.TextBox();
             this.lbMsgs = new System.Windows.Forms.ListBox();
             this.btnVoltar = new System.Windows.Forms.Button();
+            this.cbEmojis = new System.Windows.Forms.ComboBox();
+            this.cbUsersSala = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // labelNomeSala
@@ -73,8 +75,9 @@
             this.txtMsg.Location = new System.Drawing.Point(12, 406);
             this.txtMsg.Multiline = true;
             this.txtMsg.Name = "txtMsg";
-            this.txtMsg.Size = new System.Drawing.Size(600, 28);
+            this.txtMsg.Size = new System.Drawing.Size(515, 28);
             this.txtMsg.TabIndex = 7;
+            this.txtMsg.TextChanged += new System.EventHandler(this.txtMsg_TextChanged);
             // 
             // lbMsgs
             // 
@@ -96,11 +99,32 @@
             this.btnVoltar.UseVisualStyleBackColor = true;
             this.btnVoltar.Click += new System.EventHandler(this.btnVoltar_Click);
             // 
+            // cbEmojis
+            // 
+            this.cbEmojis.FormattingEnabled = true;
+            this.cbEmojis.Location = new System.Drawing.Point(533, 406);
+            this.cbEmojis.Name = "cbEmojis";
+            this.cbEmojis.Size = new System.Drawing.Size(79, 24);
+            this.cbEmojis.TabIndex = 11;
+            this.cbEmojis.SelectedIndexChanged += new System.EventHandler(this.cbEmojis_SelectedIndexChanged);
+            // 
+            // cbUsersSala
+            // 
+            this.cbUsersSala.FormattingEnabled = true;
+            this.cbUsersSala.Location = new System.Drawing.Point(579, 34);
+            this.cbUsersSala.Name = "cbUsersSala";
+            this.cbUsersSala.Size = new System.Drawing.Size(114, 24);
+            this.cbUsersSala.TabIndex = 12;
+            this.cbUsersSala.Visible = false;
+            this.cbUsersSala.SelectedIndexChanged += new System.EventHandler(this.cbUsersSala_SelectedIndexChanged);
+            // 
             // ChatSala
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(706, 444);
+            this.Controls.Add(this.cbUsersSala);
+            this.Controls.Add(this.cbEmojis);
             this.Controls.Add(this.btnVoltar);
             this.Controls.Add(this.btnDetalhes);
             this.Controls.Add(this.btnEnviarMsg);
@@ -123,5 +147,7 @@
         private System.Windows.Forms.TextBox txtMsg;
         private System.Windows.Forms.ListBox lbMsgs;
         private System.Windows.Forms.Button btnVoltar;
+        private System.Windows.Forms.ComboBox cbEmojis;
+        private System.Windows.Forms.ComboBox cbUsersSala;
     }
 }

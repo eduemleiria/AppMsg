@@ -169,7 +169,11 @@ namespace Servidor
                         string idSala = request["idSala"];
                         string username = request["user"];
                         HandleConectarSala(cliente, idSala, username);
-                    }
+                    }/*else if (request["action"] == "users_da_sala")
+                    {
+                        string idSala = request["idSala"];
+                        HandleLoadUsersSala(cliente, idSala);
+                    }*/
                 }
             }
             catch (Exception ex)
@@ -734,6 +738,33 @@ namespace Servidor
             SendResponse(cliente, new { status = "sucesso", idDaSala = $"{idSalaNovo}", emissor = $"{emissor}", mensagem = $"{msg}" });
             BroadcastMessage($"{emissor}: {msg}", usersNaSala[idSala.ToString()]);
         }
+
+       /*private static void HandleLoadUsersSala(TcpClient cliente, string idSala)
+       {
+            Console.WriteLine($"A recolher os users da sala '{idSala}'");
+            string jsonString = File.ReadAllText(salasFile);
+            Dictionary<int, Sala> salas = JsonSerializer.Deserialize<Dictionary<int, Sala>>(jsonString);
+
+            var idNovo = int.Parse(idSala);
+
+            if (salas.ContainsKey(idNovo))
+            {
+                var sala = salas[idNovo];
+                List<string> membrosDaSala = new List<string>();
+
+                foreach (var membro in sala.Membros)
+                {
+                    Console.WriteLine(membro);
+                    membrosDaSala.Add(membro.Key);
+                }
+
+                if (membrosDaSala.Count > 0)
+                {
+                    SendResponse(cliente, new { status = "sucesso", membros = membrosDaSala });
+                }
+            }
+        }*/
+
 
         private static void HandleRegister(TcpClient client, Dictionary<string, string> request)
         {

@@ -31,6 +31,8 @@ namespace Cliente
             labelNomeSala.Text = sala;
             this.usernameL = username;
             conectarSala();
+            carregarEmojis();
+            //carregarUsersDaSala();
             LoadMensagens();
         }
 
@@ -146,6 +148,80 @@ namespace Cliente
             }
         }
 
+        public void carregarEmojis()
+        {
+            for (int i = 0x1F599; i < 0x1F999; i++)
+            {
+                cbEmojis.Items.Add(char.ConvertFromUtf32(i));
+            }
+        }
+
+        private void cbEmojis_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            txtMsg.Text += cbEmojis.SelectedItem;
+        }
+
+        /*private void carregarUsersDaSala()
+        {
+            client = new TcpClient("127.0.0.1", 3700);
+            stream = client.GetStream();
+
+            try
+            {
+                var request = JsonSerializer.Serialize(new
+                {
+                    action = "users_da_sala",
+                    idSala = salaId.ToString(),
+                });
+
+                Console.WriteLine("Request de buscar users da sala: " + request);
+                byte[] data = Encoding.UTF8.GetBytes(request);
+                stream.Write(data, 0, data.Length);
+
+                byte[] buffer = new byte[1024];
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                string jsonResponse = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                Console.WriteLine($"Resposta do server: {jsonResponse}");
+
+                var response = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonResponse);
+
+                if (response["status"].ToString() == "sucesso" && response.ContainsKey("membros"))
+                {
+                    var membrosDaSala = JsonSerializer.Deserialize<List<string>>(response["membros"].ToString());
+
+                    foreach (var membro in membrosDaSala)
+                    {
+                        cbUsersSala.Items.Add(membro);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Não foi possivel encontrar os dados desta sala...", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Erro: " + ex);
+            }
+        }*/
+
+        private void txtMsg_TextChanged(object sender, EventArgs e)
+        {
+            string at = "@";
+            string text = txtMsg.Text;
+
+            if (text.EndsWith(at))
+            {
+                int index = txtMsg.Text.IndexOf("@");
+
+                Point textBoxLocation = txtMsg.GetPositionFromCharIndex(index);
+                Point windowLocation = new Point((txtMsg.Location.X + 15) + textBoxLocation.X, txtMsg.Location.Y + textBoxLocation.Y);
+
+                cbUsersSala.Visible = true;
+                cbUsersSala.Location = windowLocation;
+            }
+        }
+
         private void btnEnviarMsg_Click(object sender, EventArgs e)
         {
             string msg = txtMsg.Text;
@@ -170,6 +246,8 @@ namespace Cliente
                 stream.Flush();
 
                 txtMsg.Clear();
+
+                lbMsgs.TopIndex = lbMsgs.Items.Count - 1;
             }
             catch (Exception ex)
             {
@@ -189,6 +267,18 @@ namespace Cliente
             ListaSalas ls = new ListaSalas(usernameL);
             this.Hide();
             ls.Show();
+        }
+
+        private void cbUsersSala_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var selec = cbUsersSala.SelectedItem;
+
+            if (selec != null)
+            {
+                txtMsg.Text += selec;
+                cbUsersSala.Visible = false;
+                txtMsg.SelectionStart = txtMsg.Text.Length;
+            }
         }
     }
 }
