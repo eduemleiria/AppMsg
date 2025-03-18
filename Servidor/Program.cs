@@ -169,11 +169,11 @@ namespace Servidor
                         string idSala = request["idSala"];
                         string username = request["user"];
                         HandleConectarSala(cliente, idSala, username);
-                    }/*else if (request["action"] == "users_da_sala")
+                    }else if (request["action"] == "users_da_sala")
                     {
                         string idSala = request["idSala"];
                         HandleLoadUsersSala(cliente, idSala);
-                    }*/
+                    }
                 }
             }
             catch (Exception ex)
@@ -739,7 +739,7 @@ namespace Servidor
             BroadcastMessage($"{emissor}: {msg}", usersNaSala[idSala.ToString()]);
         }
 
-       /*private static void HandleLoadUsersSala(TcpClient cliente, string idSala)
+       private static void HandleLoadUsersSala(TcpClient cliente, string idSala)
        {
             Console.WriteLine($"A recolher os users da sala '{idSala}'");
             string jsonString = File.ReadAllText(salasFile);
@@ -763,7 +763,7 @@ namespace Servidor
                     SendResponse(cliente, new { status = "sucesso", membros = membrosDaSala });
                 }
             }
-        }*/
+        }
 
 
         private static void HandleRegister(TcpClient client, Dictionary<string, string> request)

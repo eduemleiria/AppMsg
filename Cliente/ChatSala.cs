@@ -32,8 +32,11 @@ namespace Cliente
             this.usernameL = username;
             conectarSala();
             carregarEmojis();
-            //carregarUsersDaSala();
+            carregarUsersDaSala();
             LoadMensagens();
+
+            lbMsgs.DrawMode = DrawMode.OwnerDrawFixed;
+            lbMsgs.DrawItem += lbMsgs_DrawItem;
         }
 
         private void conectarSala()
@@ -161,10 +164,10 @@ namespace Cliente
             txtMsg.Text += cbEmojis.SelectedItem;
         }
 
-        /*private void carregarUsersDaSala()
+        private void carregarUsersDaSala()
         {
-            client = new TcpClient("127.0.0.1", 3700);
-            stream = client.GetStream();
+            TcpClient client = new TcpClient("127.0.0.1", 3700);
+            NetworkStream stream = client.GetStream();
 
             try
             {
@@ -203,7 +206,7 @@ namespace Cliente
             {
                 Console.WriteLine("Erro: " + ex);
             }
-        }*/
+        }
 
         private void txtMsg_TextChanged(object sender, EventArgs e)
         {
@@ -279,6 +282,23 @@ namespace Cliente
                 cbUsersSala.Visible = false;
                 txtMsg.SelectionStart = txtMsg.Text.Length;
             }
+        }
+
+        private void lbMsgs_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0) return;
+
+            string itemText = lbMsgs.Items[e.Index].ToString();
+            bool mencionado = itemText.Contains($"@{usernameL}");
+
+            Color textColor = mencionado ? Color.Green : Color.Black;
+            Color backgroundColor = mencionado ? Color.LightCyan: lbMsgs.BackColor;
+
+            e.Graphics.FillRectangle(new SolidBrush(backgroundColor), e.Bounds);
+
+            e.Graphics.DrawString(itemText, e.Font, new SolidBrush(textColor), e.Bounds);
+
+            e.DrawFocusRectangle();
         }
     }
 }

@@ -88,6 +88,7 @@
             this.lbMsgs.Name = "lbMsgs";
             this.lbMsgs.Size = new System.Drawing.Size(681, 346);
             this.lbMsgs.TabIndex = 6;
+            this.lbMsgs.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.lbMsgs_DrawItem);
             // 
             // btnVoltar
             // 
